@@ -11,7 +11,7 @@ Item {
     property bool flatAccessories: false
 
     function focusInput() {
-        if (!Launcher.searchInteractive)
+        if (!Launcher.searchInteractive || !Launcher.searchVisible)
             return;
         searchInput.forceActiveFocus();
         searchInput.selectAll();
@@ -415,7 +415,7 @@ Item {
             root.focusInput();
         }
         function onCompleterChanged() {
-            if (!Launcher.hasCompleter && !searchInput.activeFocus) {
+            if (Launcher.searchVisible && !Launcher.hasCompleter && !searchInput.activeFocus) {
                 searchInput.forceActiveFocus();
             }
         }
