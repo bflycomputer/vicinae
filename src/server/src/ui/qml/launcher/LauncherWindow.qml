@@ -132,8 +132,8 @@ LauncherWindowBase {
             height: root.appearance.searchBarHeight + 2 * root.appearance.contentInset
             radius: root.cornerRadius
             overlay: true
-            borderColor: root.isRootScreen ? Qt.rgba(242 / 255, 242 / 255, 242 / 255, 0.1) : Config.withAlpha(Theme.mainWindowBorder, Config.windowOpacity)
-            borderWidth: root.isRootScreen ? 1 : Config.borderWidth
+            borderColor: Config.withAlpha(Theme.mainWindowBorder, Config.windowOpacity)
+            borderWidth: Config.borderWidth
         }
 
         Rectangle {
@@ -222,7 +222,7 @@ LauncherWindowBase {
         }
 
         SourceBlendRect {
-            visible: root.isRootScreen || (!Launcher.compacted && !root.nativeChrome)
+            visible: !Launcher.compacted && !root.nativeChrome
             anchors.fill: parent
             radius: root.cornerRadius
             overlay: true

@@ -36,7 +36,6 @@ void RootViewHost::initialize() {
           [this](bool visible) {
             if (visible) {
               m_recentIndex = -1;
-              emit recentSelectionChanged();
               emit recentsChanged();
             }
           });
