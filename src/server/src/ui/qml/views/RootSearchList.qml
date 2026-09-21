@@ -10,6 +10,8 @@ GenericListView {
     autoWireModel: true
     selectFirstOnReset: cmdModel.selectFirstOnReset
     suppressEmpty: Launcher.isLoading
+    topMargin: 16
+    implicitHeight: Math.max(170, contentHeight + topMargin)
 
     delegate: Loader {
         id: delegateLoader
@@ -38,18 +40,10 @@ GenericListView {
 
         sourceComponent: {
             if (isSection)
-                return sectionComponent;
+                return null;
             if (isCalculator)
                 return calculatorComponent;
             return itemComponent;
-        }
-
-        Component {
-            id: sectionComponent
-            SectionHeader {
-                width: delegateLoader.width
-                text: delegateLoader.sectionName
-            }
         }
 
         Component {
@@ -70,6 +64,7 @@ GenericListView {
             id: itemComponent
             ListItemDelegate {
                 width: delegateLoader.width
+                height: 48
                 itemTitle: delegateLoader.title
                 itemSubtitle: delegateLoader.subtitle
                 itemIconSource: delegateLoader.iconSource

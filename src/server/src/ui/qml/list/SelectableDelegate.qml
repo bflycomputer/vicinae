@@ -2,8 +2,8 @@ pragma ComponentBehavior: Bound
 import QtQuick
 import Vicinae
 
-/// Reusable delegate base for list items.  Provides a Source-blended
-/// rounded-rect background that highlights on selection/hover, a MouseArea
+/// Reusable delegate base for list items. Provides a rounded-rect
+/// background that highlights on selection/hover, a MouseArea
 /// for click handling, and a content slot for view-specific layouts.
 Item {
     id: root
@@ -37,19 +37,11 @@ Item {
         onDragRequested: root.dragRequested(root)
     }
 
-    SourceBlendRect {
+    Rectangle {
         anchors.fill: parent
-        anchors.leftMargin: root.appearance.rowInset
-        anchors.rightMargin: root.appearance.rowInset
-        radius: root.appearance.rowRadius
-        backgroundColor: root.appearance.delegateBackdrop
-        color: {
-            if (root.selected)
-                return root.appearance.selectionFill;
-            if (root.hovered)
-                return root.appearance.hoverFill;
-            return root.appearance.delegateBackdrop;
-        }
+        visible: root.selected || root.hovered
+        radius: 12
+        color: Qt.rgba(1, 1, 1, 0.06)
     }
 
     Item {

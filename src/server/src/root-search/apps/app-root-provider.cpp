@@ -39,7 +39,7 @@ bool AppRootItem::isActive() const { return ServiceRegistry::instance()->appRunt
 
 AccessoryList AppRootItem::accessories() const {
   const QString category = m_app->category();
-  return {{.text = category.isEmpty() ? tr("Application") : category, .color = SemanticColor::TextMuted}};
+  return {{.text = category.isEmpty() ? tr("App") : category, .color = SemanticColor::TextMuted}};
 }
 
 EntrypointId AppRootItem::uniqueId() const {

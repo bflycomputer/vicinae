@@ -10,6 +10,14 @@ import Vicinae
 LauncherWindowBase {
     id: root
 
+    readonly property bool isRootScreen: Launcher.atRoot
+    readonly property bool queryEmpty: (searchBar.item as SearchBar)?.queryEmpty ?? true
+    readonly property int panelTop: Math.round(Screen.height * 290 / 1117)
+    readonly property real resultHeight: commandView?.implicitHeight ?? 170
+    appearance.contentInset: isRootScreen ? 24 : Config.borderWidth
+    appearance.searchBarHeight: isRootScreen ? (queryEmpty ? 70 : 64) : 60
+    appearance.searchDividerVisible: !isRootScreen
+
     property int cornerRadius: Config.borderRounding
     property bool blurEnabled: Config.blurEnabled
     property bool shadowEnabled: shadowPadding > 0
@@ -33,7 +41,7 @@ LauncherWindowBase {
     signal shown
 
     readonly property int _w: Launcher.overrideWidth || Config.windowWidth
-    readonly property int _h: Launcher.overrideHeight || Config.windowHeight
+    readonly property int _h: isRootScreen ? Math.min(Math.max(258, appearance.searchBarHeight + 12 + resultHeight), Config.windowHeight, Screen.height - panelTop - 24) : (Launcher.overrideHeight || Config.windowHeight)
     readonly property int _contentH: Launcher.compacted ? root.appearance.searchBarHeight + 2 * root.appearance.contentInset : root._h
     readonly property int expandedHeight: root._h + 2 * shadowPadding
 
@@ -76,12 +84,23 @@ LauncherWindowBase {
 
         RectangularShadow {
             x: root.shadowPadding
-            y: root.shadowPadding
+            y: root.shadowPadding + (root.isRootScreen ? 16 : 0)
             width: root._w
             height: root._contentH
             radius: root.cornerRadius
-            blur: root.shadowPadding
-            color: Qt.rgba(0, 0, 0, 0.3)
+            blur: root.isRootScreen ? 48 : root.shadowPadding
+            color: Qt.rgba(0, 0, 0, root.isRootScreen ? 0.46 : 0.3)
+        }
+
+        RectangularShadow {
+            visible: root.isRootScreen
+            x: root.shadowPadding
+            y: root.shadowPadding + 5
+            width: root._w
+            height: root._contentH
+            radius: root.cornerRadius
+            blur: 14.4
+            color: Qt.rgba(0, 0, 0, 0.5)
         }
 
         layer.enabled: root.shadowEnabled && !root.nativeChrome
@@ -113,8 +132,8 @@ LauncherWindowBase {
             height: root.appearance.searchBarHeight + 2 * root.appearance.contentInset
             radius: root.cornerRadius
             overlay: true
-            borderColor: Config.withAlpha(Theme.mainWindowBorder, Config.windowOpacity)
-            borderWidth: Config.borderWidth
+            borderColor: root.isRootScreen ? Qt.rgba(242 / 255, 242 / 255, 242 / 255, 0.1) : Config.withAlpha(Theme.mainWindowBorder, Config.windowOpacity)
+            borderWidth: root.isRootScreen ? 1 : Config.borderWidth
         }
 
         Rectangle {
@@ -128,6 +147,8 @@ LauncherWindowBase {
         ColumnLayout {
             anchors.fill: parent
             anchors.margins: root.appearance.contentInset
+            anchors.topMargin: root.isRootScreen ? 0 : root.appearance.contentInset
+            anchors.bottomMargin: root.isRootScreen && !root.queryEmpty ? 12 : root.appearance.contentInset
             spacing: 0
             visible: !Launcher.hasOverlay
 
@@ -140,13 +161,15 @@ LauncherWindowBase {
             HorizontalLoadingBar {
                 Layout.fillWidth: true
                 implicitHeight: Launcher.searchVisible ? 1 : 0
-                visible: Launcher.searchVisible && !Launcher.compacted
+                visible: Launcher.searchVisible && !Launcher.compacted && !root.isRootScreen
                 loading: Launcher.isLoading
                 dividerVisible: root.appearance.searchDividerVisible
             }
 
             Item {
                 id: contentViewport
+                Layout.leftMargin: root.isRootScreen ? -12 : 0
+                Layout.rightMargin: root.isRootScreen ? -12 : 0
                 Layout.fillWidth: true
                 Layout.fillHeight: true
 
@@ -176,7 +199,7 @@ LauncherWindowBase {
         Loader {
             id: searchBar
             x: root.appearance.contentInset
-            y: root.appearance.contentInset
+            y: root.isRootScreen ? 0 : root.appearance.contentInset
             width: parent.width - 2 * root.appearance.contentInset
             height: root.appearance.searchBarHeight
             visible: Launcher.searchVisible && !Launcher.hasOverlay
@@ -190,7 +213,7 @@ LauncherWindowBase {
 
         Loader {
             id: floatingStatusBar
-            visible: !Launcher.compacted && !Launcher.hasOverlay && Launcher.statusBarVisible
+            visible: !root.isRootScreen && !Launcher.compacted && !Launcher.hasOverlay && Launcher.statusBarVisible
             anchors.left: parent.left
             anchors.right: parent.right
             anchors.bottom: parent.bottom
@@ -199,12 +222,12 @@ LauncherWindowBase {
         }
 
         SourceBlendRect {
-            visible: !Launcher.compacted && !root.nativeChrome
+            visible: root.isRootScreen || (!Launcher.compacted && !root.nativeChrome)
             anchors.fill: parent
             radius: root.cornerRadius
             overlay: true
-            borderColor: Config.withAlpha(Theme.mainWindowBorder, Config.windowOpacity)
-            borderWidth: Config.borderWidth
+            borderColor: root.isRootScreen ? Qt.rgba(242 / 255, 242 / 255, 242 / 255, 0.1) : Config.withAlpha(Theme.mainWindowBorder, Config.windowOpacity)
+            borderWidth: root.isRootScreen ? 1 : Config.borderWidth
         }
 
         Loader {
@@ -218,14 +241,16 @@ LauncherWindowBase {
 
         ActionPanelPopover {
             id: actionPanelPopover
-            parent: (floatingStatusBar.item as LauncherStatusBar)?.popupAnchor ?? floatingStatusBar
+            parent: root.isRootScreen ? content : ((floatingStatusBar.item as LauncherStatusBar)?.popupAnchor ?? floatingStatusBar)
+            y: root.isRootScreen ? content.height - height - 6 : -height - 6
             controller: Launcher.actionPanel
             maxHeight: Math.round(root.height * 0.55)
         }
 
         ActionPanelPopover {
             id: footerMenuPopover
-            parent: (floatingStatusBar.item as LauncherStatusBar)?.popupAnchor ?? floatingStatusBar
+            parent: root.isRootScreen ? content : ((floatingStatusBar.item as LauncherStatusBar)?.popupAnchor ?? floatingStatusBar)
+            y: root.isRootScreen ? content.height - height - 6 : -height - 6
             controller: Launcher.footerPanel
             alignLeft: true
             maxHeight: Math.round(root.height * 0.55)

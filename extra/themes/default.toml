@@ -1,0 +1,22 @@
+[meta]
+name = "Default"
+description = "Default theme for Pond"
+variant = "dark"
+inherits = "vicinae-dark"
+
+[colors.core]
+background = "#181818"
+foreground = "#ffffff"
+secondary_background = "#262626"
+border = "#303030"
+accent = "#cba6f7"
+
+[colors.main_window]
+border = "#303030"
+
+[colors.text]
+muted = "#99ffffff"
+placeholder = "#33ffffff"
+
+[colors.list.item.hover]
+background = "#262626"

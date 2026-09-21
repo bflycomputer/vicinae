@@ -13,6 +13,8 @@ Item {
     property alias delegate: listView.delegate
     property alias currentIndex: listView.currentIndex
     property alias count: listView.count
+    readonly property real contentHeight: listView.contentHeight
+    property alias topMargin: viewport.topPadding
 
     // Optional detail panel — mirrors TypedListView's SplitDetailWidget pattern.
     // `detailComponent` is the template; `detailVisible` toggles per-item

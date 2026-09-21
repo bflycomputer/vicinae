@@ -3,9 +3,12 @@ import org.kde.layershell as LayerShell
 import Vicinae
 
 LauncherWindow {
-    shadowPadding: WindowMaterial.supportsRegionalBlur ? Config.shadowSize : 0
+    id: root
+    shadowPadding: Config.shadowSize
+    LayerShell.Window.exclusionZone: -1
+    LayerShell.Window.margins.top: root.isRootScreen ? Math.max(0, root.panelTop - root.shadowPadding) : 0
 
-    LayerShell.Window.anchors: LayerShell.Window.AnchorNone
+    LayerShell.Window.anchors: root.isRootScreen ? LayerShell.Window.AnchorTop : LayerShell.Window.AnchorNone
     LayerShell.Window.scope: "vicinae"
     LayerShell.Window.wantsToBeOnActiveScreen: true
     LayerShell.Window.layer: Launcher.lsLayer

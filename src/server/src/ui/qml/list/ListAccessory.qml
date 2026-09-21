@@ -33,7 +33,7 @@ Rectangle {
         Text {
             text: root.text
             color: root._resolvedColor
-            font.pointSize: Theme.smallerFontSize
+            font.pointSize: Theme.regularFontSize
         }
     }
 

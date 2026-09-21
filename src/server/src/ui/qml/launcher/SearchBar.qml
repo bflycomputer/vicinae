@@ -9,6 +9,8 @@ Item {
     property int horizontalPadding: 16
     property real textSize: Theme.regularFontSize * 1.2
     property bool flatAccessories: false
+    readonly property bool isRootScreen: Launcher.atRoot
+    readonly property bool queryEmpty: searchInput.text.length === 0
 
     function focusInput() {
         if (!Launcher.searchInteractive)
@@ -18,9 +20,12 @@ Item {
     }
 
     RowLayout {
-        anchors.fill: parent
-        anchors.leftMargin: root.horizontalPadding
-        anchors.rightMargin: root.horizontalPadding
+        anchors.top: parent.top
+        anchors.left: parent.left
+        anchors.right: parent.right
+        height: root.isRootScreen ? 72 : parent.height
+        anchors.leftMargin: root.isRootScreen ? 0 : root.horizontalPadding
+        anchors.rightMargin: root.isRootScreen ? 40 : root.horizontalPadding
         spacing: Launcher.hasCompleter ? 4 : 12
 
         ViciImage {
@@ -59,8 +64,25 @@ Item {
                 Accessible.description: Launcher.searchPlaceholder
                 anchors.fill: parent
                 verticalAlignment: TextInput.AlignVCenter
-                font.family: Theme.fontFamily
-                font.pointSize: root.textSize
+                anchors.topMargin: root.isRootScreen && !root.queryEmpty ? -2 : 0
+                anchors.bottomMargin: root.isRootScreen && !root.queryEmpty ? 2 : 0
+                font.family: root.isRootScreen ? "ABC Gramercy" : Theme.fontFamily
+                font.pointSize: root.isRootScreen ? 19.5 : root.textSize
+                font.styleName: root.isRootScreen ? "Book" : ""
+                cursorDelegate: root.isRootScreen ? caret : null
+                Component {
+                    id: caret
+                    Item {
+                        width: 2
+                        Rectangle {
+                            width: 2
+                            height: 24
+                            anchors.verticalCenter: parent.verticalCenter
+                            color: Theme.accent
+                            visible: searchInput.cursorVisible
+                        }
+                    }
+                }
                 color: Theme.foreground
                 selectionColor: Theme.textSelectionBg
                 selectedTextColor: Theme.textSelectionFg
@@ -378,6 +400,17 @@ Item {
         }
     }
 
+    Image {
+        visible: root.isRootScreen
+        anchors.right: parent.right
+        y: 24
+        width: 24
+        height: 24
+        source: "qrc:/icons/search.svg"
+        opacity: 0.2
+        sourceSize: Qt.size(24, 24)
+    }
+
     Connections {
         target: Launcher
         function onSearchVisibleChanged() {
@@ -411,5 +444,13 @@ Item {
             if (Launcher.hasCompleter)
                 argCompleter.setValues(Launcher.completerValues);
         }
+    }
+    Rectangle {
+        visible: root.isRootScreen
+        anchors.left: parent.left
+        anchors.right: parent.right
+        anchors.bottom: parent.bottom
+        height: 1
+        color: Theme.inputBorder
     }
 }
