@@ -1,3 +1,6 @@
+#include <algorithm>
+#include <qevent.h>
+#include <ranges>
 #include "builtins/root/root-view-host.hpp"
 #include "ui/views/view-utils.hpp"
 #include "lib/figura/src/utils.hpp"
@@ -6,8 +9,6 @@
 #include "service-registry.hpp"
 #include "services/keybinding/keybinding-service.hpp"
 #include "ui/views/view-scope.hpp"
-#include <algorithm>
-#include <qevent.h>
 
 void RootViewHost::initialize() {
   using namespace std::chrono_literals;
@@ -16,19 +17,29 @@ void RootViewHost::initialize() {
   BaseView::initialize();
   m_model = new RootSearchModel(ViewScope(context(), this), this);
   scheduleNextClockTick();
+  connect(context()->services->rootItemManager(), &RootItemManager::itemsChanged, this,
+          &RootViewHost::recentsChanged);
+  connect(context()->services->rootItemManager(), &RootItemManager::metadataChanged, this,
+          &RootViewHost::recentsChanged);
 
   connect(cfgService, &config::Manager::configChanged, this,
           [this](const auto &next, const auto &prev) { scheduleNextClockTick(); });
 
   connect(m_clockTimer, &QTimer::timeout, this, &RootViewHost::scheduleNextClockTick);
-  connect(m_model, &SectionListModel::itemSelected, this, [this](SectionSource *source, int itemIdx) {
-    if (auto panel = source->actionPanel(itemIdx))
-      setActions(std::move(panel));
-    else
-      clearActions();
+  connect(this, &RootViewHost::recentSelectionChanged, this, [this]() {
+    if (m_queryEmpty) selectRecent(m_recentIndex);
   });
-  connect(m_model, &SectionListModel::selectionCleared, this, [this]() { clearActions(); });
+  connect(this, &RootViewHost::recentsChanged, this, &RootViewHost::recentSelectionChanged);
+  m_model->setSelectFirstOnReset(false);
 
+  connect(context()->navigation.get(), &NavigationController::windowVisiblityChanged, this,
+          [this](bool visible) {
+            if (visible) {
+              m_recentIndex = -1;
+              emit recentSelectionChanged();
+              emit recentsChanged();
+            }
+          });
   m_model->setFilter({});
 }
 
@@ -114,6 +125,29 @@ bool RootViewHost::inputFilter(QKeyEvent *event) {
   auto &nav = context()->navigation;
   auto &cfg = context()->services->config()->value();
 
+  if (m_queryEmpty && (event->modifiers() == Qt::NoModifier ||
+                       (event->key() == Qt::Key_Backtab && event->modifiers() == Qt::ShiftModifier))) {
+    const int count = recentApps().size();
+    switch (event->key()) {
+    case Qt::Key_Return:
+    case Qt::Key_Enter:
+      launchRecent(std::max(0, m_recentIndex));
+      return true;
+    case Qt::Key_Right:
+    case Qt::Key_Down:
+    case Qt::Key_Tab:
+      m_recentIndex = count ? (m_recentIndex + 1) % count : -1;
+      emit recentSelectionChanged();
+      return true;
+    case Qt::Key_Left:
+    case Qt::Key_Up:
+    case Qt::Key_Backtab:
+      m_recentIndex = count ? (m_recentIndex <= 0 ? count - 1 : m_recentIndex - 1) : -1;
+      emit recentSelectionChanged();
+      return true;
+    }
+  }
+
   if (!(event->modifiers() & ~Qt::ShiftModifier) && event->key() == Qt::Key_Space) {
     return tryAliasFastTrack();
   }
@@ -152,12 +186,22 @@ bool RootViewHost::inputFilter(QKeyEvent *event) {
 }
 
 QVariantMap RootViewHost::qmlProperties() {
-  return {{QStringLiteral("cmdModel"), QVariant::fromValue(static_cast<QObject *>(m_model))}};
+  return {{QStringLiteral("cmdModel"), QVariant::fromValue(static_cast<QObject *>(m_model))},
+          {QStringLiteral("host"), QVariant::fromValue(this)}};
 }
 
 void RootViewHost::textChanged(const QString &text) {
+  if (m_queryEmpty != text.isEmpty()) {
+    m_queryEmpty = text.isEmpty();
+    m_recentIndex = -1;
+    emit queryChanged();
+    emit recentSelectionChanged();
+  }
   if (!m_textChangedByHistory) { m_historyOffset.reset(); }
-  if (m_model) m_model->setFilter(text);
+  if (m_model) {
+    m_model->setFilter(text);
+    if (m_queryEmpty) selectRecent(m_recentIndex);
+  }
 }
 
 void RootViewHost::onReactivated() {
@@ -169,3 +213,27 @@ void RootViewHost::beforePop() {
 }
 
 SectionListModel *RootViewHost::listModel() const { return m_model; }
+
+QVariantList RootViewHost::recentApps() const {
+  const auto apps = context()->services->rootItemManager()->search(
+      "", {.prioritizeAliased = false, .providerId = "applications"});
+  QVariantList result;
+  for (const auto &match : apps | std::views::take(3)) {
+    const auto &app = match.item.get();
+    result.append(QVariantMap{{"id", QString::fromStdString(std::string{app->uniqueId()})},
+                              {"title", app->title()},
+                              {"icon", app->iconUrl().toString()}});
+  }
+  return result;
+}
+
+void RootViewHost::selectRecent(int index) {
+  const auto apps = recentApps();
+  const auto id = index >= 0 && index < apps.size() ? apps[index].toMap().value("id").toString() : QString{};
+  m_model->setSelectedIndex(m_model->indexOfItemId(id));
+}
+
+void RootViewHost::launchRecent(int index) {
+  selectRecent(index);
+  m_model->activateSelected();
+}

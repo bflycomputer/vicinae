@@ -62,6 +62,7 @@ public:
   Q_INVOKABLE int nextSectionIndex(int from, int direction) const;
   Q_INVOKABLE int scrollTargetIndex(int index, int direction) const;
 
+  int indexOfItemId(const QString &id) const;
   void refreshActionPanel();
   void beforePop();
 
@@ -84,7 +85,6 @@ private:
 
   void rebuildFlatList();
   void rebuildCustomRoleDefaults();
-  int indexOfItemId(const QString &id) const;
 
   ViewScope m_scope;
   std::vector<SectionSource *> m_sources;

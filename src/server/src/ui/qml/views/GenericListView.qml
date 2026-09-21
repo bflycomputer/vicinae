@@ -31,6 +31,7 @@ Item {
     property Component emptyViewComponent: null
 
     property bool suppressEmpty: false
+    property bool showResults: true
 
     readonly property bool _showDetail: root.detailComponent !== null && root.detailVisible
     readonly property bool _empty: listView.count === 0
@@ -209,7 +210,7 @@ Item {
     RowLayout {
         anchors.fill: parent
         spacing: 0
-        visible: !root._empty
+        visible: !root._empty && root.showResults
 
         ListScrollViewport {
             id: viewport

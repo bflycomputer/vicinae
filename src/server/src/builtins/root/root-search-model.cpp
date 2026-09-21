@@ -79,7 +79,7 @@ void RootSearchModel::setFilter(const QString &text) {
   auto query = text.toStdString();
   if (query == m_query) return;
   m_query = std::move(query);
-  setSelectFirstOnReset(true);
+  setSelectFirstOnReset(!text.isEmpty());
   scope().clearActions();
 
   m_calcSource->setResult({});

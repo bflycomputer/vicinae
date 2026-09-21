@@ -41,7 +41,7 @@ LauncherWindowBase {
     signal shown
 
     readonly property int _w: Launcher.overrideWidth || Config.windowWidth
-    readonly property int _h: isRootScreen ? Math.min(Math.max(258, appearance.searchBarHeight + 12 + resultHeight), Config.windowHeight, Screen.height - panelTop - 24) : (Launcher.overrideHeight || Config.windowHeight)
+    readonly property int _h: isRootScreen ? Math.min(queryEmpty ? 254 : Math.max(258, appearance.searchBarHeight + 12 + resultHeight), Config.windowHeight, Screen.height - panelTop - 24) : (Launcher.overrideHeight || Config.windowHeight)
     readonly property int _contentH: Launcher.compacted ? root.appearance.searchBarHeight + 2 * root.appearance.contentInset : root._h
     readonly property int expandedHeight: root._h + 2 * shadowPadding
 
