@@ -15,7 +15,7 @@ LauncherWindowBase {
     readonly property int panelTop: Math.round(Screen.height * 290 / 1117)
     readonly property real resultHeight: commandView?.implicitHeight ?? 170
     appearance.contentInset: isRootScreen ? 24 : Config.borderWidth
-    appearance.searchBarHeight: isRootScreen ? (queryEmpty ? 70 : 64) : 60
+    appearance.searchBarHeight: isRootScreen ? 64 : 60
     appearance.searchDividerVisible: !isRootScreen
 
     property int cornerRadius: Config.borderRounding
