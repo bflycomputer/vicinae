@@ -16,7 +16,7 @@
 	"telemetry": {
 		// Sends system information such as desktop environment, vicinae version, etc...
 		// Only sent once at startup every 24 hours
-		"system_info": true
+		"system_info": false
 	},
 
 	// Input monitoring/injection binary required to handle "paste to active window" actions and snippet expansion.
@@ -40,7 +40,7 @@
 	"search_files_in_root": false,
 
 	// activate list and grid items with only one click
-	"activate_on_single_click": false,
+	"activate_on_single_click": true,
 
 	// What vicinae should do when the "escape" key is pressed
 	// Supports "navigate_back" or "close_window"
@@ -58,7 +58,7 @@
 	"consider_preedit": false,
 
 	// Reset the navigation state every time the window is closed
-	"pop_to_root_on_close": false,
+	"pop_to_root_on_close": true,
 
 	// What favicon service to use when loading favicons is needed.
 	// Available values are: 'twenty' | 'google' | 'none'
@@ -81,11 +81,11 @@
 		// "system": uses the system/platform default font
 		// Or specify any font family name (e.g. "Fira Sans")
 		"normal": {
-			"family": "auto"
+			"family": "Onest",
 			// The point size of the font (unlike pixel size, the point size scales with resolution)
 			// NOTE: if unspecified, Vicinae will pick the best point size for the current platform (there is no one size fits all)
 			// Therefore, it is recommended to leave this unset unless you really want a custom font size.
-			// "size": 10.5
+			"size": 11.25
 		}
 	},
 
@@ -94,11 +94,11 @@
 	// When editing the current theme through the vicinae GUI, it will modify the value that maps to the current system appearance.
 	"theme": {
 		"light": {
-			"name": "vicinae-light",
+			"name": "default",
 			"icon_theme": "auto"
 		},
 		"dark": {
-			"name": "vicinae-dark",
+			"name": "default",
 			"icon_theme": "auto"
 		}
 	},
@@ -107,7 +107,7 @@
 		// Control the opacity of the main window.
 		// Opacity for other surfaces are controlled by the active theme.
 		// [0;1]
-		// "opacity": 0.6,
+		"opacity": 0.7,
 
 		// @Deprecated: use "material". "enabled": false maps to material "none".
 		"blur": {
@@ -116,10 +116,10 @@
 
 		// "none", "blur", "liquid_glass", or "auto" (liquid_glass when available, else blur).
 		// Needs window opacity < 1 to be visible.
-		"material": "auto",
+		"material": "blur",
 
 		// Corner radius of the launcher window, in pixels.
-		// "rounding": 10,
+		"rounding": 24,
 
 		// customize the format used for the clock, displayed in the
 		// root search status bar when there is nothing better to show.
@@ -149,7 +149,7 @@
 			// We assume that non layer surfaces may already have drop shadows drawn by the compositor.
 			// In order to play well with blur, we do NOT allow drop shadows if the compositor doesn't support
 			// the ext-background-effect protocol (which allows defining a specific region to blur).
-			"shadow_size": 12
+			"shadow_size": 64
 		},
 
 		// In compact mode, vicinae only shows a search bar in the root search if no query is entered, only expanding to its full size when searching.
@@ -161,8 +161,8 @@
 		// The vicinae UI is designed to work best at the default size. If you change this it is highly recommended
 		// that you preserve a similar aspect ratio.
 		"size": {
-			"width": 770,
-			"height": 480
+			"width": 638,
+			"height": 590
 		},
 
 		// EXPERIMENTAL - X11 ONLY!
