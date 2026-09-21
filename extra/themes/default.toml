@@ -18,5 +18,8 @@ border = "#303030"
 muted = "#99ffffff"
 placeholder = "#33ffffff"
 
+[colors.input]
+border = { name = "#ffffff", opacity = 0.13 }
+
 [colors.list.item.hover]
 background = "#262626"
