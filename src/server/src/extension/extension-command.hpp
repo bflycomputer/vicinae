@@ -21,6 +21,7 @@ class ExtensionCommand : public AbstractCmd {
   QString _extensionId;
   QString m_extensionName;
   QString _extensionTitle;
+  bool m_hideExtensionName = false;
   QString _extensionIcon;
   PreferenceList _extensionPreferences;
   std::filesystem::path m_path;
@@ -80,6 +81,8 @@ public:
 
   void setPath(const std::filesystem::path &path);
   void setExtensionTitle(const QString &title);
+  bool hidesExtensionName() const { return m_hideExtensionName; }
+  void setHideExtensionName(bool hide) { m_hideExtensionName = hide; }
   void setExtensionName(const QString &name);
   CommandType type() const override;
   CommandMode mode() const override;

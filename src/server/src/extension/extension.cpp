@@ -43,6 +43,7 @@ Extension::Extension(const ExtensionManifest &manifest) : m_manifest(manifest) {
     command->setExtensionId(m_manifest.id);
     command->setPath(m_manifest.path);
     command->setExtensionTitle(m_manifest.title);
+    command->setHideExtensionName(m_manifest.hideExtensionName);
     command->setExtensionIcon(m_manifest.icon);
     command->setExtensionPreferences(m_manifest.preferences);
     command->setExtensionName(m_manifest.name);

@@ -17,6 +17,7 @@ QString CommandRootItem::subtitle() const {
     if (ext->overriddenSubtitle() && !ext->overriddenSubtitle()->isEmpty()) {
       return *ext->overriddenSubtitle();
     }
+    if (ext->hidesExtensionName()) return {};
   }
   return m_command->repositoryDisplayName();
 }

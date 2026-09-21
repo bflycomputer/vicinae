@@ -372,6 +372,11 @@
       "minLength": 2,
       "description": "The extension title will be displayed in the Store and in Preferences."
     },
+    "hideExtensionName": {
+      "type": "boolean",
+      "default": false,
+      "description": "Hide the extension name beside its commands in launcher results. Defaults to false. Custom command subtitles are still shown."
+    },
     "access": {
       "enum": ["public", "private"],
       "type": "string",

@@ -312,6 +312,12 @@ export default z.object({
 		.describe(
 			"The extension title will be displayed in the Store and in Preferences.",
 		),
+	hideExtensionName: z
+		.boolean()
+		.describe(
+			"Hide the extension name beside its commands in launcher results. Defaults to false. Custom command subtitles are still shown.",
+		)
+		.optional(),
 	access: z
 		.enum(["public", "private"])
 		.describe(

@@ -38,6 +38,7 @@ std::expected<ExtensionManifest, ManifestError> ExtensionManifest::fromPackageJs
   manifest.id = QString::fromStdString(getLastPathComponent(path));
   manifest.name = obj.value("name").toString();
   manifest.title = obj.value("title").toString();
+  manifest.hideExtensionName = obj.value("hideExtensionName").toBool(false);
   manifest.description = obj.value("description").toString();
   manifest.icon = obj.value("icon").toString();
   manifest.author = obj.value("author").toString();

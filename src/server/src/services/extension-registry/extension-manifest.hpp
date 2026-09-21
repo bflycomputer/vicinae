@@ -40,6 +40,7 @@ struct ExtensionManifest {
   std::vector<QString> categories;
   std::vector<Preference> preferences;
   std::vector<Command> commands;
+  bool hideExtensionName = false;
   bool needsRaycastApi = false;
   Provenance provenance;
 
