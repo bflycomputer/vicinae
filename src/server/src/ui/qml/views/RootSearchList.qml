@@ -70,9 +70,7 @@ GenericListView {
         width: ListView.view.width
 
         required property int index
-        required property bool isSection
         required property bool isSelectable
-        required property string sectionName
         required property string itemType
         required property string title
         required property string subtitle
@@ -90,13 +88,7 @@ GenericListView {
         required property bool isFile
         required property bool isDraggable
 
-        sourceComponent: {
-            if (isSection)
-                return null;
-            if (isCalculator)
-                return calculatorComponent;
-            return itemComponent;
-        }
+        sourceComponent: isCalculator ? calculatorComponent : itemComponent
 
         Component {
             id: calculatorComponent

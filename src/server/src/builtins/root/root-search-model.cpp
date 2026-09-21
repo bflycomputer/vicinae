@@ -24,7 +24,7 @@ bool isAbsolutePathLike(const QString &text) {
 } // namespace
 
 RootSearchModel::RootSearchModel(const ViewScope &scope, QObject *parent)
-    : SectionListModel(parent), m_manager(scope.services()->rootItemManager()),
+    : SectionListModel(parent, false), m_manager(scope.services()->rootItemManager()),
       m_appDb(scope.services()->appDb()), m_newsService(scope.services()->newsService()),
       m_updateService(scope.services()->updateService()), m_calculator(scope.services()->calculatorService()),
       m_fileService(scope.services()->fileService()), m_config(scope.services()->config()),

@@ -5,7 +5,8 @@
 #include "services/navigation/list-navigation.hpp"
 #include "ui/views/view-utils.hpp"
 
-SectionListModel::SectionListModel(QObject *parent) : QAbstractListModel(parent) {
+SectionListModel::SectionListModel(QObject *parent, bool showSectionHeaders)
+    : QAbstractListModel(parent), m_showSectionHeaders(showSectionHeaders) {
   connect(&ThemeService::instance(), &ThemeService::themeChanged, this, [this]() {
     if (rowCount() > 0) emit dataChanged(index(0), index(rowCount() - 1), {IconSource});
   });
@@ -310,7 +311,7 @@ void SectionListModel::rebuildFlatList() {
     if (itemCount == 0) continue;
 
     auto name = source->sectionName();
-    if (!name.isEmpty()) {
+    if (m_showSectionHeaders && !name.isEmpty()) {
       newFlat.push_back({.kind = FlatItem::SectionHeader, .sourceIdx = s, .itemIdx = -1});
     }
 

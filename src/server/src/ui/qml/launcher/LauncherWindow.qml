@@ -292,7 +292,7 @@ LauncherWindowBase {
         MouseArea {
             anchors.fill: parent
             z: 300
-            enabled: Launcher.canPositionWindow
+            visible: Launcher.canPositionWindow
             acceptedButtons: Qt.LeftButton
             readonly property int topGrabHeight: 12
             onPressed: mouse => {

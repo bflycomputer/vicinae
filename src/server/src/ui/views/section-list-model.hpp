@@ -37,7 +37,7 @@ public:
     ShortcutTokens,
   };
 
-  explicit SectionListModel(QObject *parent = nullptr);
+  explicit SectionListModel(QObject *parent = nullptr, bool showSectionHeaders = true);
 
   void setScope(const ViewScope &scope) { m_scope = scope; }
   void addSource(SectionSource *source);
@@ -95,4 +95,5 @@ private:
   QString m_lastSelectedItemId;
   bool m_selectFirstOnReset = true;
   bool m_awaitingData = true;
+  const bool m_showSectionHeaders;
 };
