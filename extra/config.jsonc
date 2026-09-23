@@ -241,9 +241,7 @@
 	// List of entrypoints to suggest as a fallback when no result matches the
 	// provided search query.
 	// Each value is a serialized entrypoint ID.
-	"fallbacks": [
-		"files:search"
-	],
+	"fallbacks": [],
 
 	// Every item that can be activated from the vicinae root search is referred as an entrypoint, or sometimes, in the case of extensions, as a "command".
 	// Entrypoints are always grouped under a provider.

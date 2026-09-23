@@ -16,6 +16,7 @@ class SearchFilesCommand : public BuiltinViewCommand<SearchFilesViewHost> {
   QString id() const override { return "search"; }
   QString name() const override { return tr("Search Files"); }
   QString description() const override { return tr("Search files on your system"); }
+  bool isDefaultDisabled() const override { return true; }
   bool isFallback() const override { return true; }
   ImageURL iconUrl() const override {
     return ImageURL::builtin(BuiltinIcon::MagnifyingGlass).setBackgroundTint(SemanticColor::Yellow);
@@ -91,7 +92,7 @@ public:
     indexing.setDescription(
         tr("Whether to run the file indexer in the background. When turned off, the indexer process is "
            "stopped entirely and file search becomes unavailable until it is turned back on."));
-    indexing.setDefaultValue(true);
+    indexing.setDefaultValue(false);
 
     auto paths = Preference::directories("indexingPaths");
     paths.setTitle(tr("Search paths"));
