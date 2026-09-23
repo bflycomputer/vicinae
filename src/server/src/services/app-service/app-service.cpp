@@ -1,4 +1,5 @@
 #include "app-service.hpp"
+#include "ui/image/image-renderer.hpp"
 #include "utils/timer.hpp"
 #include <chrono>
 #include <qlogging.h>
@@ -11,6 +12,7 @@
 #include "services/app-service/xdg/xdg-app-database.hpp"
 #endif
 #include "internal/db/omni-database.hpp"
+#include <QIcon>
 #include <QProcess>
 #include <filesystem>
 #include <qcontainerfwd.h>
@@ -177,6 +179,8 @@ bool AppService::reinstallWatches(const std::vector<fs::path> &paths) {
 bool AppService::scanSync() {
   reinstallWatches(m_provider->searchPaths());
   bool const result = m_provider->scan();
+  QIcon::setThemeSearchPaths(QIcon::themeSearchPaths());
+  ImageRendering::clearCache();
   emit appsChanged();
   return result;
 }
