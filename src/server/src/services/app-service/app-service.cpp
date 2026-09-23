@@ -179,7 +179,7 @@ bool AppService::reinstallWatches(const std::vector<fs::path> &paths) {
 bool AppService::scanSync() {
   reinstallWatches(m_provider->searchPaths());
   bool const result = m_provider->scan();
-  QIcon::setThemeSearchPaths(QIcon::themeSearchPaths());
+  QIcon::setThemeSearchPaths({});
   ImageRendering::clearCache();
   emit appsChanged();
   return result;
