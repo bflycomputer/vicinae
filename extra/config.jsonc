@@ -252,5 +252,9 @@
 	// written to the "providers" object below (password preferences excluded).
 	//
 	// The exact list of available providers depends on what extensions have been installed.
-	"providers": {}
+	"providers": {
+		"core": {
+			"enabled": false
+		}
+	}
 }
