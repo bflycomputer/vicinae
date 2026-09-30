@@ -40,7 +40,7 @@ GenericListView {
                     width: parent.width - 40
                     height: 28
                     text: recentCard.modelData.title
-                    font.family: "ABC Gramercy"
+                    font.family: "Pond Gramercy"
                     font.styleName: "Book"
                     font.pixelSize: 20
                     verticalAlignment: Text.AlignVCenter

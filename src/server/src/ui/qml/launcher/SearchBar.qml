@@ -66,7 +66,7 @@ Item {
                 verticalAlignment: TextInput.AlignVCenter
                 anchors.topMargin: root.isRootScreen && !root.queryEmpty ? -2 : 0
                 anchors.bottomMargin: root.isRootScreen && !root.queryEmpty ? 2 : 0
-                font.family: root.isRootScreen ? "ABC Gramercy" : Theme.fontFamily
+                font.family: root.isRootScreen ? "Pond Gramercy" : Theme.fontFamily
                 font.pointSize: root.isRootScreen ? 19.5 : root.textSize
                 font.styleName: root.isRootScreen ? "Book" : ""
                 cursorDelegate: root.isRootScreen ? caret : null
