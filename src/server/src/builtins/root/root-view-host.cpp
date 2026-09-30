@@ -214,10 +214,14 @@ void RootViewHost::beforePop() {
 SectionListModel *RootViewHost::listModel() const { return m_model; }
 
 QVariantList RootViewHost::recentApps() const {
-  const auto apps = context()->services->rootItemManager()->search(
-      "", {.prioritizeAliased = false, .providerId = "applications"});
+  const auto items = context()->services->rootItemManager()->search("", {.prioritizeAliased = false});
+  auto suggestions = items | std::views::filter([](const auto &match) {
+                       const auto id = match.item.get()->uniqueId();
+                       return id.provider == "applications" ||
+                              id == EntrypointId{"@bflycomputer/pond-pm-extension", "install"};
+                     });
   QVariantList result;
-  for (const auto &match : apps | std::views::take(3)) {
+  for (const auto &match : suggestions | std::views::take(3)) {
     const auto &app = match.item.get();
     result.append(QVariantMap{{"id", QString::fromStdString(std::string{app->uniqueId()})},
                               {"title", app->title()},

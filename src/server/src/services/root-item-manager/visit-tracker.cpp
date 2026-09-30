@@ -8,7 +8,10 @@
 
 namespace fs = std::filesystem;
 
-VisitTracker::VisitTracker(const fs::path &path) : m_path(path) { loadFromDisk(); }
+VisitTracker::VisitTracker(const fs::path &path) : m_path(path) {
+  loadFromDisk();
+  m_data.visited.try_emplace("@bflycomputer/pond-pm-extension:install", VisitInfo{.visitCount = 5});
+}
 
 void VisitTracker::registerVisit(const EntrypointId &id) {
   VisitInfo &data = m_data.visited[id];
