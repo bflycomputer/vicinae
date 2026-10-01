@@ -23,6 +23,8 @@ LauncherWindowBase {
     property bool shadowEnabled: shadowPadding > 0
     property bool nativeChrome: false
     property bool autoPlaceOnShow: true
+    property int panelX: shadowPadding
+    property int panelY: shadowPadding
     property Component contentEffect: null
     property Component searchBarComponent: SearchBar {
         commandView: root.commandView
@@ -35,7 +37,7 @@ LauncherWindowBase {
     }
     readonly property Item commandView: (commandStack.currentItem as LauncherPage)?.view ?? null
     statusBarOverlap: floatingStatusBar.visible && root.appearance.floatingStatusBar ? floatingStatusBar.height - root.appearance.contentInset : 0
-    statusBarTop: shadowPadding + floatingStatusBar.y
+    statusBarTop: panelY + floatingStatusBar.y
     popupBackdrop: contentArea
     signal aboutToShow
     signal shown
@@ -47,10 +49,10 @@ LauncherWindowBase {
 
     width: root._w + 2 * shadowPadding
     height: expandedHeight
-    minimumWidth: root._w + 2 * shadowPadding
-    maximumWidth: root._w + 2 * shadowPadding
-    minimumHeight: expandedHeight
-    maximumHeight: expandedHeight
+    minimumWidth: width
+    maximumWidth: width
+    minimumHeight: height
+    maximumHeight: height
     title: qsTr("Vicinae Launcher")
     flags: Qt.FramelessWindowHint | Qt.WindowStaysOnTopHint
     color: "transparent"
@@ -58,12 +60,12 @@ LauncherWindowBase {
 
     WindowMaterial.enabled: root.blurEnabled && !root.nativeChrome
     WindowMaterial.radius: root.cornerRadius
-    WindowMaterial.region: Qt.rect(shadowPadding, shadowPadding, root._w, Launcher.compacted ? root._contentH : root._h)
+    WindowMaterial.region: Qt.rect(panelX, panelY, root._w, root._contentH)
 
     Item {
         id: shadowMask
-        width: root.width
-        height: root.height
+        width: root._w + 2 * root.shadowPadding
+        height: root.expandedHeight
         visible: false
         layer.enabled: true
 
@@ -79,7 +81,10 @@ LauncherWindowBase {
 
     Item {
         id: shadowCaster
-        anchors.fill: parent
+        x: root.panelX - root.shadowPadding
+        y: root.panelY - root.shadowPadding
+        width: shadowMask.width
+        height: shadowMask.height
         visible: root.shadowEnabled && !root.nativeChrome
 
         RectangularShadow {
@@ -113,8 +118,8 @@ LauncherWindowBase {
 
     Item {
         id: content
-        x: root.shadowPadding
-        y: root.shadowPadding
+        x: root.panelX
+        y: root.panelY
         width: root._w
         height: root._h
 
@@ -244,7 +249,7 @@ LauncherWindowBase {
             parent: root.isRootScreen ? content : ((floatingStatusBar.item as LauncherStatusBar)?.popupAnchor ?? floatingStatusBar)
             y: root.isRootScreen ? content.height - height - 6 : -height - 6
             controller: Launcher.actionPanel
-            maxHeight: Math.round(root.height * 0.55)
+            maxHeight: Math.round(root.expandedHeight * 0.55)
         }
 
         ActionPanelPopover {
@@ -253,7 +258,7 @@ LauncherWindowBase {
             y: root.isRootScreen ? content.height - height - 6 : -height - 6
             controller: Launcher.footerPanel
             alignLeft: true
-            maxHeight: Math.round(root.height * 0.55)
+            maxHeight: Math.round(root.expandedHeight * 0.55)
         }
 
         MouseArea {
