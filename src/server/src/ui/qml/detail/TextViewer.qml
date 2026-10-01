@@ -10,6 +10,8 @@ ScrollViewport {
 
     required property string text
     property bool monospace: false
+    property alias padding: textEdit.padding
+    property alias font: textEdit.font
     property list<string> highlightTerms
     property color highlightColor: Qt.alpha(Theme.accent, 0.35)
 

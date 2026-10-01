@@ -191,6 +191,13 @@
 		<file>consul.svg</file>
 		<file>contao.svg</file>
 		<file>contrast.svg</file>
+		<file>clipboard-all.svg</file>
+		<file>clipboard-text.svg</file>
+		<file>clipboard-link.svg</file>
+		<file>clipboard-image.svg</file>
+		<file>clipboard-file.svg</file>
+		<file>clipboard-filter.svg</file>
+		<file>clipboard-filter-hover.svg</file>
 		<file>copy-clipboard.svg</file>
 		<file>corejs.svg</file>
 		<file>cosmosdb.svg</file>

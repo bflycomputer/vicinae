@@ -11,12 +11,14 @@ LauncherWindowBase {
     id: root
 
     readonly property bool isRootScreen: Launcher.atRoot
+    readonly property bool isClipboardScreen: Launcher.commandViewHost instanceof ClipboardHistoryViewHost
+    readonly property bool hasCompactChrome: isRootScreen || isClipboardScreen
     readonly property bool queryEmpty: (searchBar.item as SearchBar)?.queryEmpty ?? true
     readonly property int panelTop: Math.round(Screen.height * 290 / 1117)
     readonly property real resultHeight: commandView?.implicitHeight ?? 170
-    appearance.contentInset: isRootScreen ? 24 : Config.borderWidth
-    appearance.searchBarHeight: isRootScreen ? 64 : 60
-    appearance.searchDividerVisible: !isRootScreen
+    appearance.contentInset: isRootScreen ? 24 : (isClipboardScreen ? 0 : Config.borderWidth)
+    appearance.searchBarHeight: hasCompactChrome ? 64 : 60
+    appearance.searchDividerVisible: !hasCompactChrome
 
     property int cornerRadius: Config.borderRounding
     property bool blurEnabled: Config.blurEnabled
@@ -43,7 +45,7 @@ LauncherWindowBase {
     signal shown
 
     readonly property int _w: Launcher.overrideWidth || Config.windowWidth
-    readonly property int _h: isRootScreen ? Math.min(queryEmpty ? 254 : Math.max(258, appearance.searchBarHeight + 12 + resultHeight), Config.windowHeight, Screen.height - panelTop - 24) : (Launcher.overrideHeight || Config.windowHeight)
+    readonly property int _h: isRootScreen ? Math.min(queryEmpty ? 254 : Math.max(258, appearance.searchBarHeight + 12 + resultHeight), Config.windowHeight, Screen.height - panelTop - 24) : (Launcher.overrideHeight || (isClipboardScreen ? Math.min(464, Config.windowHeight) : Config.windowHeight))
     readonly property int _contentH: Launcher.compacted ? root.appearance.searchBarHeight + 2 * root.appearance.contentInset : root._h
     readonly property int expandedHeight: root._h + 2 * shadowPadding
 
@@ -89,16 +91,16 @@ LauncherWindowBase {
 
         RectangularShadow {
             x: root.shadowPadding
-            y: root.shadowPadding + (root.isRootScreen ? 16 : 0)
+            y: root.shadowPadding + (root.hasCompactChrome ? 16 : 0)
             width: root._w
             height: root._contentH
             radius: root.cornerRadius
-            blur: root.isRootScreen ? 48 : root.shadowPadding
-            color: Qt.rgba(0, 0, 0, root.isRootScreen ? 0.46 : 0.3)
+            blur: root.hasCompactChrome ? 48 : root.shadowPadding
+            color: Qt.rgba(0, 0, 0, root.hasCompactChrome ? 0.46 : 0.3)
         }
 
         RectangularShadow {
-            visible: root.isRootScreen
+            visible: root.hasCompactChrome
             x: root.shadowPadding
             y: root.shadowPadding + 5
             width: root._w
@@ -166,7 +168,7 @@ LauncherWindowBase {
             HorizontalLoadingBar {
                 Layout.fillWidth: true
                 implicitHeight: Launcher.searchVisible ? 1 : 0
-                visible: Launcher.searchVisible && !Launcher.compacted && !root.isRootScreen
+                visible: Launcher.searchVisible && !Launcher.compacted && !root.hasCompactChrome
                 loading: Launcher.isLoading
                 dividerVisible: root.appearance.searchDividerVisible
             }
@@ -203,9 +205,9 @@ LauncherWindowBase {
 
         Loader {
             id: searchBar
-            x: root.appearance.contentInset
+            x: root.isClipboardScreen ? 24 : root.appearance.contentInset
             y: root.isRootScreen ? 0 : root.appearance.contentInset
-            width: parent.width - 2 * root.appearance.contentInset
+            width: parent.width - 2 * x
             height: root.appearance.searchBarHeight
             visible: Launcher.searchVisible && !Launcher.hasOverlay
             enabled: !Launcher.alertModel.visible

@@ -10,6 +10,9 @@ Item {
     property real textSize: Theme.regularFontSize * 1.2
     property bool flatAccessories: false
     readonly property bool isRootScreen: Launcher.atRoot
+    readonly property bool isClipboardScreen: Launcher.commandViewHost instanceof ClipboardHistoryViewHost
+    readonly property bool hasCompactChrome: isRootScreen || isClipboardScreen
+    readonly property var clipboardFilter: isClipboardScreen ? accessoryLoader.item : null
     readonly property bool queryEmpty: searchInput.text.length === 0
 
     function focusInput() {
@@ -23,9 +26,9 @@ Item {
         anchors.top: parent.top
         anchors.left: parent.left
         anchors.right: parent.right
-        height: root.isRootScreen ? 72 : parent.height
-        anchors.leftMargin: root.isRootScreen ? 0 : root.horizontalPadding
-        anchors.rightMargin: root.isRootScreen ? 40 : root.horizontalPadding
+        height: root.isRootScreen ? 72 : (root.isClipboardScreen ? 68 : parent.height)
+        anchors.leftMargin: root.hasCompactChrome ? 0 : root.horizontalPadding
+        anchors.rightMargin: root.isRootScreen ? 40 : (root.isClipboardScreen ? (root.clipboardFilter?.filtered ? 0 : -8) : root.horizontalPadding)
         spacing: Launcher.hasCompleter ? 4 : 12
 
         ViciImage {
@@ -66,10 +69,10 @@ Item {
                 verticalAlignment: TextInput.AlignVCenter
                 anchors.topMargin: root.isRootScreen && !root.queryEmpty ? -2 : 0
                 anchors.bottomMargin: root.isRootScreen && !root.queryEmpty ? 2 : 0
-                font.family: root.isRootScreen ? "Pond Gramercy" : Theme.fontFamily
-                font.pointSize: root.isRootScreen ? 19.5 : root.textSize
-                font.styleName: root.isRootScreen ? "Book" : ""
-                cursorDelegate: root.isRootScreen ? caret : null
+                font.family: root.hasCompactChrome ? "Pond Gramercy" : Theme.fontFamily
+                font.pointSize: root.hasCompactChrome ? 19.5 : root.textSize
+                font.styleName: root.hasCompactChrome ? "Book" : ""
+                cursorDelegate: root.hasCompactChrome ? caret : null
                 Component {
                     id: caret
                     Item {
@@ -375,7 +378,14 @@ Item {
             source: Launcher.searchAccessoryUrl
             visible: active
             Layout.alignment: Qt.AlignVCenter
-            Layout.preferredWidth: root.flatAccessories && item instanceof SearchableDropdown ? Math.min(200, (item as SearchableDropdown).preferredWidth) : 200
+            Layout.preferredWidth: root.isClipboardScreen ? (item as Item)?.implicitWidth ?? 40 : (root.flatAccessories && item instanceof SearchableDropdown ? Math.min(200, (item as SearchableDropdown).preferredWidth) : 200)
+        }
+
+        Binding {
+            target: accessoryLoader.item
+            property: "clipboardContent"
+            value: root.commandView
+            when: root.clipboardFilter !== null
         }
 
         Binding {
@@ -388,7 +398,12 @@ Item {
         Shortcut {
             sequence: Keybinds.openSearchAccessorySequence
             enabled: !!accessoryLoader.item
-            onActivated: (accessoryLoader.item as SearchableDropdown)?.open()
+            onActivated: {
+                if (root.clipboardFilter)
+                    root.clipboardFilter.open();
+                else
+                    (accessoryLoader.item as SearchableDropdown)?.open();
+            }
         }
 
         Connections {
@@ -446,7 +461,7 @@ Item {
         }
     }
     Rectangle {
-        visible: root.isRootScreen
+        visible: root.hasCompactChrome
         anchors.left: parent.left
         anchors.right: parent.right
         anchors.bottom: parent.bottom

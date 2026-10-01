@@ -1,3 +1,9 @@
+#include <QCoreApplication>
+#include <QDateTime>
+#include <QFileInfo>
+#include <qlogging.h>
+#include <qnamespace.h>
+
 #include "builtins/clipboard/history/clipboard-history-model.hpp"
 #include "actions/app-actions.hpp"
 #include "common/context.hpp"
@@ -11,14 +17,24 @@
 #include "services/paste/paste-service.hpp"
 #include "ui/action-panel/action.hpp"
 #include "utils/utils.hpp"
-#include <QCoreApplication>
-#include <QDateTime>
-#include <qlogging.h>
-#include <qnamespace.h>
 
-void ClipboardHistorySection::setEntries(const PaginatedResponse<ClipboardHistoryEntry> &page) {
-  m_entries = page.data;
-  notifyChanged();
+ClipboardHistorySection::ClipboardHistorySection(QString name, std::span<const ClipboardHistoryEntry> entries,
+                                                 ClipboardService *clipboard)
+    : m_name(std::move(name)) {
+  m_entries.reserve(entries.size());
+  for (const auto &entry : entries) {
+    auto &item = m_entries.emplace_back(entry);
+    if (item.kind == ClipboardOfferKind::Link && item.urlHost) item.textPreview = *item.urlHost;
+    if (item.kind != ClipboardOfferKind::File || !clipboard) continue;
+    if (auto data = clipboard->getMainOfferData(item.id)) {
+      QStringList names;
+      for (const auto &line : QString::fromUtf8(*data).split('\n', Qt::SkipEmptyParts)) {
+        const QUrl url(line.trimmed());
+        if (url.isLocalFile()) names.append(QFileInfo(url.toLocalFile()).fileName());
+      }
+      if (!names.empty()) item.textPreview = names.join(", ");
+    }
+  }
 }
 
 QString ClipboardHistorySection::itemId(int i) const { return m_entries[i].id; }
@@ -35,15 +51,13 @@ std::optional<ImageURL> ClipboardHistorySection::itemIcon(int i) const { return 
 ImageURL ClipboardHistorySection::iconForEntry(const ClipboardHistoryEntry &entry) const {
   switch (entry.kind) {
   case ClipboardOfferKind::Image:
-    return ImageURL::builtin(BuiltinIcon::Image);
+    return ImageURL::builtinByName(u"clipboard-image");
   case ClipboardOfferKind::Link:
-    if (entry.urlHost)
-      return ImageURL::favicon(*entry.urlHost).withFallback(ImageURL::builtin(BuiltinIcon::Link));
-    return ImageURL::builtin(BuiltinIcon::Link);
+    return ImageURL::builtinByName(u"clipboard-link");
   case ClipboardOfferKind::Text:
-    return ImageURL::builtin(BuiltinIcon::Text);
+    return ImageURL::builtinByName(u"clipboard-text");
   case ClipboardOfferKind::File:
-    return ImageURL::builtin(BuiltinIcon::Folder);
+    return ImageURL::builtinByName(u"clipboard-file");
   default:
     return ImageURL::builtin(BuiltinIcon::QuestionMarkCircle);
   }
@@ -147,6 +161,16 @@ std::unique_ptr<ActionPanelState> ClipboardHistorySection::actionPanel(int i) co
   auto dangerSection = panel->createSection();
   toolsSection->addAction(pin);
   toolsSection->addAction(editKeywords);
+  if (clipman->supportsMonitoring() && m_onToggleMonitoring) {
+    const bool monitoring = clipman->monitoring();
+    auto *toggle = new StaticAction(
+        monitoring ? QCoreApplication::translate("ClipboardHistorySection", "Pause clipboard")
+                   : QCoreApplication::translate("ClipboardHistorySection", "Resume clipboard"),
+        ImageURL::builtin(monitoring ? BuiltinIcon::PauseFilled : BuiltinIcon::PlayFilled),
+        m_onToggleMonitoring);
+    toggle->setAutoClose(false);
+    toolsSection->addAction(toggle);
+  }
   dangerSection->addAction(remove);
   dangerSection->addAction(removeAll);
 

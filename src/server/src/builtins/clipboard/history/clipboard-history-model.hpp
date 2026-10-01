@@ -1,18 +1,23 @@
 #pragma once
-#include "common/paginated.hpp"
+#include <functional>
+#include <span>
+
 #include "ui/views/section-source.hpp"
 #include "services/clipboard/clipboard-db.hpp"
-#include <functional>
+
+class ClipboardService;
 
 class ClipboardHistorySection : public SectionSource {
 public:
   enum ExtraRole { IsPinned = 100, IsTagged };
   enum class DefaultAction { Copy, Paste };
 
-  void setEntries(const PaginatedResponse<ClipboardHistoryEntry> &page);
+  ClipboardHistorySection(QString name, std::span<const ClipboardHistoryEntry> entries,
+                          ClipboardService *clipboard = nullptr);
   void setDefaultAction(DefaultAction action) { m_defaultAction = action; }
+  void setOnToggleMonitoring(std::function<void()> cb) { m_onToggleMonitoring = std::move(cb); }
 
-  QString sectionName() const override { return {}; }
+  QString sectionName() const override { return m_name; }
   int count() const override { return static_cast<int>(m_entries.size()); }
 
   const ClipboardHistoryEntry &entryAt(int i) const { return m_entries[i]; }
@@ -36,6 +41,7 @@ public:
   QHash<int, QByteArray> customRoleNames() const override {
     return {{IsPinned, "isPinned"}, {IsTagged, "isTagged"}};
   }
+  QHash<int, QVariant> customRoleDefaults() const override { return {{IsPinned, false}, {IsTagged, false}}; }
 
 protected:
   QString itemId(int i) const override;
@@ -49,7 +55,9 @@ protected:
 private:
   ImageURL iconForEntry(const ClipboardHistoryEntry &entry) const;
 
+  QString m_name;
   std::vector<ClipboardHistoryEntry> m_entries;
   DefaultAction m_defaultAction = DefaultAction::Copy;
   std::function<void(const ClipboardHistoryEntry &)> m_onEntrySelected;
+  std::function<void()> m_onToggleMonitoring;
 };

@@ -14,20 +14,16 @@ class ClipboardHistoryViewHost : public ViewHostBase {
   Q_OBJECT
   QML_NAMED_ELEMENT(ClipboardHistoryViewHost)
   QML_UNCREATABLE("")
-  Q_PROPERTY(QString itemCountText READ itemCountText NOTIFY itemCountTextChanged)
-  Q_PROPERTY(QString clipboardStatusText READ clipboardStatusText NOTIFY clipboardStatusChanged)
-  Q_PROPERTY(QString clipboardStatusIcon READ clipboardStatusIcon NOTIFY clipboardStatusChanged)
-  Q_PROPERTY(bool canToggleMonitoring READ canToggleMonitoring CONSTANT)
   Q_PROPERTY(CompletionModel *kindFilterModel READ kindFilterModel CONSTANT)
   Q_PROPERTY(int currentKindFilter READ currentKindFilter NOTIFY currentKindFilterChanged)
   Q_PROPERTY(bool hasDetail READ hasDetail NOTIFY detailChanged)
   Q_PROPERTY(bool hasDetailError READ hasDetailError NOTIFY detailChanged)
   Q_PROPERTY(QString detailType READ detailType NOTIFY detailChanged)
+  Q_PROPERTY(QString detailTitle READ detailTitle NOTIFY detailChanged)
+  Q_PROPERTY(bool detailIsFileIcon READ detailIsFileIcon NOTIFY detailChanged)
   Q_PROPERTY(QString detailTextContent READ detailTextContent NOTIFY detailChanged)
   Q_PROPERTY(QString detailImageSource READ detailImageSource NOTIFY detailChanged)
-  Q_PROPERTY(QString detailSize READ detailSize NOTIFY detailChanged)
   Q_PROPERTY(QString detailCopiedAt READ detailCopiedAt NOTIFY detailChanged)
-  Q_PROPERTY(QString detailMd5 READ detailMd5 NOTIFY detailChanged)
   Q_PROPERTY(QString detailEncryptionIcon READ detailEncryptionIcon NOTIFY detailChanged)
   Q_PROPERTY(QString detailErrorTitle READ detailErrorTitle NOTIFY detailChanged)
   Q_PROPERTY(QString detailErrorDescription READ detailErrorDescription NOTIFY detailChanged)
@@ -45,41 +41,36 @@ public:
   void initialize() override;
   void onReactivated() override;
   void beforePop() override;
+  bool needsGlobalStatusBar() const override { return false; }
+  bool showBackButton() const override { return false; }
 
   Q_INVOKABLE void toggleMonitoring();
   Q_INVOKABLE void setKindFilter(int kind);
 
   SectionListModel *listModel() const override { return const_cast<SectionListModel *>(&m_model); }
   CompletionModel *kindFilterModel() { return &m_kindFilterModel; }
-  QString itemCountText() const { return m_itemCountText; }
-  QString clipboardStatusText() const { return m_clipboardStatusText; }
-  QString clipboardStatusIcon() const { return m_clipboardStatusIcon; }
-  bool canToggleMonitoring() const { return m_canToggleMonitoring; }
   int currentKindFilter() const { return m_currentKindFilter; }
   bool hasDetail() const { return m_hasDetail; }
   bool hasDetailError() const { return m_hasDetailError; }
   QString detailType() const { return m_detailType; }
+  QString detailTitle() const { return m_detailTitle; }
+  bool detailIsFileIcon() const { return m_detailIsFileIcon; }
   QString detailTextContent() const { return m_detailTextContent; }
   QString detailImageSource() const { return m_detailImageSource; }
-  QString detailSize() const { return m_detailSize; }
   QString detailCopiedAt() const { return m_detailCopiedAt; }
-  QString detailMd5() const { return m_detailMd5; }
   QString detailEncryptionIcon() const { return m_detailEncryptionIcon; }
   QString detailErrorTitle() const { return m_detailErrorTitle; }
   QString detailErrorDescription() const { return m_detailErrorDescription; }
   QStringList searchTerms() const { return m_searchTerms; }
 
 signals:
-  void itemCountTextChanged();
-  void clipboardStatusChanged();
   void currentKindFilterChanged();
   void detailChanged();
   void searchTermsChanged();
 
 private:
-  void handleMonitoringChanged(bool monitoring);
   void updateSearchTerms(const QString &text);
-  void handleDataRetrieved(int totalCount);
+  void setEntries(const std::vector<ClipboardHistoryEntry> &entries);
   void loadDetail(const ClipboardHistoryEntry &entry);
   void clearDetail();
   void saveDropdownFilter(const QString &value);
@@ -87,25 +78,22 @@ private:
 
   SectionListModel m_model{this};
   CompletionModel m_kindFilterModel{this};
-  ClipboardHistorySection m_section;
+  std::vector<std::unique_ptr<ClipboardHistorySection>> m_sections;
+  ClipboardHistorySection::DefaultAction m_defaultAction = ClipboardHistorySection::DefaultAction::Copy;
   ClipboardHistoryController *m_controller = nullptr;
   ClipboardService *m_clipman = nullptr;
   QMimeDatabase m_mimeDb;
 
-  QString m_itemCountText = tr("Loading...");
-  QString m_clipboardStatusText;
-  QString m_clipboardStatusIcon;
-  bool m_canToggleMonitoring = false;
   int m_currentKindFilter = 0;
 
   bool m_hasDetail = false;
   bool m_hasDetailError = false;
   QString m_detailType;
+  QString m_detailTitle;
+  bool m_detailIsFileIcon = false;
   QString m_detailTextContent;
   QString m_detailImageSource;
-  QString m_detailSize;
   QString m_detailCopiedAt;
-  QString m_detailMd5;
   QString m_detailEncryptionIcon;
   QString m_detailErrorTitle;
   QString m_detailErrorDescription;

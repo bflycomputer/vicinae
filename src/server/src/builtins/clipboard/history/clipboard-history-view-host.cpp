@@ -1,3 +1,12 @@
+#include <QCoreApplication>
+#include <QDateTime>
+#include <QDir>
+#include <QFile>
+#include <QFileInfo>
+#include <QLocale>
+#include <QUrl>
+#include <ranges>
+
 #include "builtins/clipboard/history/clipboard-history-view-host.hpp"
 #include "builtins/clipboard/history/clipboard-history-controller.hpp"
 #include "ui/views/view-utils.hpp"
@@ -5,11 +14,6 @@
 #include "services/clipboard/clipboard-service.hpp"
 #include "utils/utils.hpp"
 #include "vicinae.hpp"
-#include <QCoreApplication>
-#include <QDateTime>
-#include <QDir>
-#include <QFile>
-#include <QUrl>
 
 static QString kindLabel(ClipboardOfferKind kind) {
   switch (kind) {
@@ -69,7 +73,21 @@ static const std::unordered_map<QString, ClipboardOfferKind> savedFilterToKind{
 static const char *filterIndexToSavedValue[] = {"all", "text", "image", "link", "file"};
 
 ClipboardHistoryViewHost::ClipboardHistoryViewHost() : ViewHostBase() {
-  m_kindFilterModel.setStringOptions({tr("All"), tr("Text"), tr("Images"), tr("Links"), tr("Files")});
+  auto item = [](const QString &id, const QString &label, QStringView icon) {
+    return qml::makeDropdownItem(id, label, qml::imageSourceFor(ImageURL::builtinByName(icon)));
+  };
+  m_kindFilterModel.setItems({
+      item("0", tr("All types"), u"clipboard-all"),
+      item("1", tr("Text only"), u"clipboard-text"),
+      item("2", tr("Image only"), u"clipboard-image"),
+      item("4", tr("Files only"), u"clipboard-file"),
+      item("3", tr("Links only"), u"clipboard-link"),
+  });
+  m_sections.reserve(1);
+  m_sections.emplace_back(
+      std::make_unique<ClipboardHistorySection>(QString{}, std::span<const ClipboardHistoryEntry>{}));
+  m_model.addSource(m_sections.back().get());
+  connect(&m_model, &SectionListModel::selectionCleared, this, &ClipboardHistoryViewHost::clearDetail);
 }
 
 ClipboardHistoryViewHost::~ClipboardHistoryViewHost() {
@@ -93,37 +111,24 @@ void ClipboardHistoryViewHost::initialize() {
   m_clipman->pauseEviction();
   m_model.setScope(ViewScope(context(), this));
 
-  m_section.setOnEntrySelected([this](const ClipboardHistoryEntry &e) { loadDetail(e); });
-  m_model.addSource(&m_section);
-
   m_controller = new ClipboardHistoryController(m_clipman, this);
 
   auto preferences = command()->preferenceValues();
   auto defaultActionStr = preferences.value("defaultAction").toString();
-  m_section.setDefaultAction(defaultActionStr == "paste" ? ClipboardHistorySection::DefaultAction::Paste
-                                                         : ClipboardHistorySection::DefaultAction::Copy);
+  m_defaultAction = defaultActionStr == "paste" ? ClipboardHistorySection::DefaultAction::Paste
+                                                : ClipboardHistorySection::DefaultAction::Copy;
 
-  setSearchPlaceholderText(tr("Browse clipboard history..."));
+  setSearchPlaceholderText(tr("Search clipboard"));
 
-  m_canToggleMonitoring = m_clipman->supportsMonitoring();
-  if (!m_canToggleMonitoring) {
-    m_clipboardStatusText = tr("Clipboard monitoring unavailable");
-    m_clipboardStatusIcon =
-        qml::imageSourceFor(ImageURL::builtin(BuiltinIcon::Warning).setFill(SemanticColor::Red));
-  } else {
-    handleMonitoringChanged(m_clipman->monitoring());
-  }
-
-  connect(m_clipman, &ClipboardService::monitoringChanged, this,
-          &ClipboardHistoryViewHost::handleMonitoringChanged);
+  connect(m_clipman, &ClipboardService::monitoringChanged, &m_model, &SectionListModel::refreshActionPanel,
+          Qt::QueuedConnection);
 
   connect(m_controller, &ClipboardHistoryController::dataRetrieved, this,
           [this](const PaginatedResponse<ClipboardHistoryEntry> &page) {
             bool const incremental = !m_model.selectFirstOnReset();
-            m_section.setEntries(page);
+            setEntries(page.data);
             m_model.setSelectFirstOnReset(false);
             if (incremental) m_model.refreshActionPanel();
-            handleDataRetrieved(page.totalCount);
           });
 
   connect(m_controller, &ClipboardHistoryController::dataLoadingChanged, this, &BaseView::setLoading);
@@ -181,22 +186,41 @@ void ClipboardHistoryViewHost::setKindFilter(int kind) {
   if (!searchText().isEmpty()) { clearSearchText(); }
 }
 
-void ClipboardHistoryViewHost::handleMonitoringChanged(bool monitoring) {
-  if (monitoring) {
-    m_clipboardStatusText = tr("Pause clipboard");
-    m_clipboardStatusIcon =
-        qml::imageSourceFor(ImageURL::builtin(BuiltinIcon::PauseFilled).setFill(SemanticColor::Accent));
-  } else {
-    m_clipboardStatusText = tr("Resume clipboard");
-    m_clipboardStatusIcon =
-        qml::imageSourceFor(ImageURL::builtin(BuiltinIcon::PlayFilled).setFill(SemanticColor::Green));
+void ClipboardHistoryViewHost::setEntries(const std::vector<ClipboardHistoryEntry> &entries) {
+  auto dateFor = [](const ClipboardHistoryEntry &entry) -> std::optional<QDate> {
+    if (entry.pinnedAt != 0) return std::nullopt;
+    return QDateTime::fromSecsSinceEpoch(entry.updatedAt).date();
+  };
+  const auto today = QDate::currentDate();
+  m_model.clearSources();
+  m_sections.clear();
+  m_sections.reserve(entries.size());
+  for (auto group : entries | std::views::chunk_by(
+                                  [&](const auto &a, const auto &b) { return dateFor(a) == dateFor(b); })) {
+    const auto date = dateFor(group.front());
+    QString name;
+    if (!date) {
+      name = tr("Pinned");
+    } else if (*date == today) {
+      name = tr("Today");
+    } else if (*date == today.addDays(-1)) {
+      name = tr("Yesterday");
+    } else {
+      name = QLocale().toString(*date, QLocale::LongFormat);
+    }
+    auto &section = m_sections.emplace_back(
+        std::make_unique<ClipboardHistorySection>(std::move(name), std::span(group), m_clipman));
+    section->setDefaultAction(m_defaultAction);
+    section->setOnEntrySelected([this](const ClipboardHistoryEntry &entry) { loadDetail(entry); });
+    section->setOnToggleMonitoring([this]() { toggleMonitoring(); });
+    m_model.addSource(section.get());
   }
-  emit clipboardStatusChanged();
-}
-
-void ClipboardHistoryViewHost::handleDataRetrieved(int totalCount) {
-  m_itemCountText = tr("%n Items", nullptr, totalCount);
-  emit itemCountTextChanged();
+  if (m_sections.empty()) {
+    m_sections.emplace_back(
+        std::make_unique<ClipboardHistorySection>(QString{}, std::span<const ClipboardHistoryEntry>{}));
+    m_model.addSource(m_sections.back().get());
+  }
+  m_model.rebuild();
 }
 
 void ClipboardHistoryViewHost::loadDetail(const ClipboardHistoryEntry &entry) {
@@ -207,9 +231,9 @@ void ClipboardHistoryViewHost::loadDetail(const ClipboardHistoryEntry &entry) {
   m_detailErrorDescription.clear();
 
   m_detailType = kindLabel(entry.kind);
-  m_detailSize = formatSize(entry.size);
-  m_detailCopiedAt = QDateTime::fromSecsSinceEpoch(entry.updatedAt).toString();
-  m_detailMd5 = entry.md5sum;
+  m_detailTitle = m_detailType;
+  m_detailIsFileIcon = false;
+  m_detailCopiedAt = QLocale().toString(QDateTime::fromSecsSinceEpoch(entry.updatedAt), QLocale::ShortFormat);
 
   if (entry.encryption != ClipboardEncryptionType::None) {
     m_detailEncryptionIcon =
@@ -255,12 +279,18 @@ void ClipboardHistoryViewHost::loadDetail(const ClipboardHistoryEntry &entry) {
     if (paths.size() == 1) {
       QUrl const url(paths.at(0));
       if (url.isLocalFile()) {
+        m_detailTitle = QFileInfo(url.toLocalFile()).fileName();
         std::error_code ec;
         std::filesystem::path const path = url.toLocalFile().toStdString();
         if (std::filesystem::is_regular_file(path, ec)) {
           auto preview = qml::resolveFilePreview(path, m_mimeDb);
           m_detailImageSource = preview.imageSource;
           m_detailTextContent = preview.textContent;
+          m_detailIsFileIcon = !preview.mimeType.startsWith("image/") && !m_detailImageSource.isEmpty();
+          if (m_detailImageSource.isEmpty() && m_detailTextContent.isEmpty()) {
+            m_detailImageSource = qml::imageSourceFor(ImageURL::fileIcon(path));
+            m_detailIsFileIcon = true;
+          }
           m_hasDetail = true;
           emit detailChanged();
           return;
@@ -270,6 +300,7 @@ void ClipboardHistoryViewHost::loadDetail(const ClipboardHistoryEntry &entry) {
   }
 
   if (mime.startsWith("image/")) {
+    m_detailTitle = entry.textPreview;
     auto const cacheDir = QString::fromStdString(Omnicast::cacheDir().string());
     QDir().mkpath(cacheDir);
     QString const path = cacheDir + QStringLiteral("/clipboard-") + entry.md5sum;
@@ -303,9 +334,9 @@ void ClipboardHistoryViewHost::clearDetail() {
   m_detailTextContent.clear();
   m_detailImageSource.clear();
   m_detailType.clear();
-  m_detailSize.clear();
+  m_detailTitle.clear();
+  m_detailIsFileIcon = false;
   m_detailCopiedAt.clear();
-  m_detailMd5.clear();
   m_detailEncryptionIcon.clear();
   m_detailErrorTitle.clear();
   m_detailErrorDescription.clear();
