@@ -182,8 +182,6 @@ void ClipboardHistoryViewHost::setKindFilter(int kind) {
   m_controller->setKindFilter(offerKind);
 
   if (kind >= 0 && kind <= 4) { saveDropdownFilter(filterIndexToSavedValue[kind]); }
-
-  if (!searchText().isEmpty()) { clearSearchText(); }
 }
 
 void ClipboardHistoryViewHost::setEntries(const std::vector<ClipboardHistoryEntry> &entries) {
@@ -233,7 +231,8 @@ void ClipboardHistoryViewHost::loadDetail(const ClipboardHistoryEntry &entry) {
   m_detailType = kindLabel(entry.kind);
   m_detailTitle = m_detailType;
   m_detailIsFileIcon = false;
-  m_detailCopiedAt = QLocale().toString(QDateTime::fromSecsSinceEpoch(entry.updatedAt), QLocale::ShortFormat);
+  m_detailCopiedAt = QLocale().toString(QDateTime::fromSecsSinceEpoch(entry.updatedAt),
+                                        QStringLiteral("MMM d yyyy, h:mm AP"));
 
   if (entry.encryption != ClipboardEncryptionType::None) {
     m_detailEncryptionIcon =

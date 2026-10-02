@@ -12,4 +12,5 @@ public:
   explicit TextDocumentEdit(QObject *parent = nullptr);
 
   Q_INVOKABLE void replace(QQuickTextDocument *document, int start, int end, const QString &text);
+  Q_INVOKABLE void setLineHeight(QQuickTextDocument *document, qreal height);
 };

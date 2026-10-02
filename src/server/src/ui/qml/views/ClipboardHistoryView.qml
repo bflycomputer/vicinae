@@ -149,6 +149,7 @@ Item {
                 }
             }
             ViciImage {
+                id: imagePreview
                 anchors.centerIn: parent
                 width: root.host.detailIsFileIcon ? Math.min(134, parent.width) : parent.width
                 height: root.host.detailIsFileIcon ? Math.min(134, parent.height) : parent.height
@@ -157,6 +158,25 @@ Item {
                 fillMode: Image.PreserveAspectFit
                 cache: false
                 sourceSize: Qt.size(width * Screen.devicePixelRatio, height * Screen.devicePixelRatio)
+                layer.enabled: visible && !root.host.detailIsFileIcon
+                layer.effect: MultiEffect {
+                    maskEnabled: true
+                    maskSource: imageMask
+                }
+            }
+            Item {
+                id: imageMask
+                anchors.fill: imagePreview
+                visible: false
+                layer.enabled: imagePreview.layer.enabled
+                Rectangle {
+                    readonly property real imageScale: Math.min(parent.width / Math.max(1, imagePreview.implicitWidth), parent.height / Math.max(1, imagePreview.implicitHeight))
+                    anchors.centerIn: parent
+                    width: imagePreview.implicitWidth * imageScale
+                    height: imagePreview.implicitHeight * imageScale
+                    radius: height > width ? 16 : 12
+                    color: "white"
+                }
             }
             TextViewer {
                 id: textPreview
@@ -166,7 +186,8 @@ Item {
                 highlightTerms: root.host.searchTerms
                 padding: 0
                 font.family: "Onest"
-                font.pointSize: 9.75
+                font.pixelSize: 13
+                lineHeight: 19
                 layer.enabled: scrollable && !flickable.atYEnd
                 layer.effect: MultiEffect {
                     maskEnabled: true

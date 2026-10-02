@@ -12,11 +12,19 @@ ScrollViewport {
     property bool monospace: false
     property alias padding: textEdit.padding
     property alias font: textEdit.font
+    property real lineHeight: 0
     property list<string> highlightTerms
     property color highlightColor: Qt.alpha(Theme.accent, 0.35)
 
-    onTextChanged: Qt.callLater(scrollToFirstMatch)
-    onInitialized: scrollToFirstMatch()
+    onLineHeightChanged: TextDocumentEdit.setLineHeight(textEdit.textDocument, lineHeight)
+    onTextChanged: Qt.callLater(updateLayout)
+    onInitialized: updateLayout()
+
+    function updateLayout() {
+        if (lineHeight > 0)
+            TextDocumentEdit.setLineHeight(textEdit.textDocument, lineHeight);
+        scrollToFirstMatch();
+    }
 
     function scrollToFirstMatch() {
         if (matchHighlighter.firstMatchPosition < 0) {
