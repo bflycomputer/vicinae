@@ -38,9 +38,13 @@ Item {
             implicitWidth: actionRow.implicitWidth + 12
             implicitHeight: 39
             radius: height / 2
-            color: Config.withAlpha(Theme.foreground, 0.04)
+            color: Config.withAlpha(Theme.foreground, pillHover.hovered || Launcher.actionPanel.open ? 0.12 : 0.04)
             border.width: 1
             border.color: Config.withAlpha(Theme.foreground, 0.05)
+
+            HoverHandler {
+                id: pillHover
+            }
 
             RowLayout {
                 id: actionRow
@@ -62,7 +66,6 @@ Item {
                     label: qsTr("Actions")
                     shortcutTokens: Keybinds.toggleActionPanelTokens
                     highlighted: Launcher.actionPanel.open
-                    backgrounded: Launcher.actionPanel.open
                     onClicked: Launcher.actionPanel.toggle(true)
                 }
             }

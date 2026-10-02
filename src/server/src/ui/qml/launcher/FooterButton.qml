@@ -8,7 +8,6 @@ Item {
     required property string label
     required property var shortcutTokens
     property bool highlighted: false
-    property bool backgrounded: false
 
     signal clicked
 
@@ -16,19 +15,11 @@ Item {
     Accessible.name: root.label
     Accessible.onPressAction: root.clicked()
 
-    readonly property bool hovered: mouseArea.containsMouse
     readonly property int horizontalPadding: 8
     readonly property int buttonHeight: 37
 
     implicitWidth: row.implicitWidth + 2 * horizontalPadding
     implicitHeight: buttonHeight
-
-    Rectangle {
-        anchors.fill: parent
-        visible: root.hovered || root.backgrounded
-        radius: height / 2
-        color: Config.withAlpha(Theme.foreground, 0.08)
-    }
 
     Row {
         id: row
