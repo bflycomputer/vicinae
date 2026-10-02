@@ -70,7 +70,10 @@ ImageURL ImageURL::resolved() const {
     out.setFill(ThemeService::instance().theme().resolve(*fill));
   else if (type() == ImageURLType::Builtin || type() == ImageURLType::Symbol)
     out.setFill(ThemeService::instance().theme().resolve(SemanticColor::Foreground));
-  if (auto bg = backgroundTint()) out.setBackgroundTint(ThemeService::instance().theme().resolve(*bg));
+  if (type() == ImageURLType::Builtin)
+    out._bgTint.reset();
+  else if (auto bg = backgroundTint())
+    out.setBackgroundTint(ThemeService::instance().theme().resolve(*bg));
   if (out.type() == ImageURLType::Local) out.setName(resolveThemedLocalPath(out.name()));
   return out;
 }
