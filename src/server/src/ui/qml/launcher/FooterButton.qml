@@ -18,7 +18,7 @@ Item {
 
     readonly property bool hovered: mouseArea.containsMouse
     readonly property int horizontalPadding: 8
-    readonly property int buttonHeight: 28
+    readonly property int buttonHeight: 37
 
     implicitWidth: row.implicitWidth + 2 * horizontalPadding
     implicitHeight: buttonHeight
@@ -26,8 +26,8 @@ Item {
     Rectangle {
         anchors.fill: parent
         visible: root.hovered || root.backgrounded
-        radius: 6
-        color: Qt.rgba(Theme.listItemHoverBg.r, Theme.listItemHoverBg.g, Theme.listItemHoverBg.b, Config.windowOpacity)
+        radius: height / 2
+        color: Config.withAlpha(Theme.foreground, 0.08)
     }
 
     Row {
@@ -38,8 +38,8 @@ Item {
         Text {
             text: root.label
             color: root.highlighted ? Theme.foreground : Theme.textMuted
-            font.family: Theme.fontFamily
-            font.pointSize: Theme.smallerFontSize
+            font.family: "Onest"
+            font.pixelSize: 13
             anchors.verticalCenter: parent.verticalCenter
         }
 

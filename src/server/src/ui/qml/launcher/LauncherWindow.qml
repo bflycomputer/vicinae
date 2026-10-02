@@ -31,12 +31,7 @@ LauncherWindowBase {
     property Component searchBarComponent: SearchBar {
         commandView: root.commandView
     }
-    property Component statusBarComponent: LauncherStatusBar {
-        backdrop: root.popupBackdrop
-        windowRadius: root.cornerRadius
-        windowHeight: root._h
-        windowWidth: root._w
-    }
+    property Component statusBarComponent: LauncherStatusBar {}
     readonly property Item commandView: (commandStack.currentItem as LauncherPage)?.view ?? null
     statusBarOverlap: floatingStatusBar.visible && root.appearance.floatingStatusBar ? floatingStatusBar.height - root.appearance.contentInset : 0
     statusBarTop: panelY + floatingStatusBar.y
@@ -182,7 +177,7 @@ LauncherWindowBase {
 
                 Item {
                     anchors.fill: parent
-                    anchors.bottomMargin: (root.contentEffect === null || !root.appearance.floatingStatusBar) && floatingStatusBar.visible ? floatingStatusBar.height - root.appearance.contentInset : 0
+                    anchors.bottomMargin: !root.appearance.floatingStatusBar && floatingStatusBar.visible ? floatingStatusBar.height - root.appearance.contentInset : 0
                     clip: true
 
                     Item {

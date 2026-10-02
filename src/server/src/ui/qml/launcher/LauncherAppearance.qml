@@ -10,7 +10,7 @@ QtObject {
     property bool overlaySearchBar: false
     property int contentInset: Config.borderWidth
     property bool floatingStatusBar: Config.floatingStatusBar
-    property int contentBottomInset: 0
+    property int contentBottomInset: 50
 
     property int rowInset: 6
     property int rowRadius: 10

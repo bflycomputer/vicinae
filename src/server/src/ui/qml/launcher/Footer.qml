@@ -6,64 +6,66 @@ import Vicinae
 Item {
     RowLayout {
         anchors.fill: parent
-        anchors.leftMargin: 16
-        anchors.rightMargin: 16
-        spacing: 4
+        spacing: 12
 
         Item {
             Layout.fillWidth: true
             Layout.fillHeight: true
+            Layout.topMargin: 10
 
-            FooterNavStatus {
+            Text {
                 visible: !Launcher.toastActive
-                clickable: Launcher.atRoot
-                availableWidth: parent.width
+                width: parent.width
                 anchors.verticalCenter: parent.verticalCenter
-                onClicked: Launcher.openFooterMenu()
+                text: Launcher.navigationTitle
+                font.family: "Onest"
+                font.pixelSize: 13
+                color: Config.withAlpha(Theme.foreground, 0.5)
+                elide: Text.ElideRight
             }
 
             FooterToast {
                 visible: Launcher.toastActive
                 anchors.verticalCenter: parent.verticalCenter
                 width: parent.width
+                constrained: true
             }
-        }
-
-        FooterButton {
-            id: primaryButton
-            visible: Launcher.actionPanel.primaryActionTitle !== ""
-            Layout.alignment: Qt.AlignVCenter
-            label: Launcher.actionPanel.primaryActionTitle
-            shortcutTokens: Launcher.actionPanel.primaryActionShortcutTokens
-            highlighted: true
-            onClicked: Launcher.actionPanel.executePrimaryAction()
         }
 
         Rectangle {
-            visible: primaryButton.visible && actionsButton.visible
+            visible: Launcher.actionPanel.primaryActionTitle !== "" || Launcher.actionPanel.hasMultipleActions
             Layout.alignment: Qt.AlignVCenter
-            Layout.preferredWidth: 1
-            Layout.preferredHeight: 12
-            opacity: primaryButton.hovered || actionsButton.hovered || actionsButton.backgrounded ? 0 : 0.35
-            color: Config.withAlpha(Theme.textMuted, Config.windowOpacity)
+            implicitWidth: actionRow.implicitWidth + 12
+            implicitHeight: 39
+            radius: height / 2
+            color: Config.withAlpha(Theme.foreground, 0.04)
+            border.width: 1
+            border.color: Config.withAlpha(Theme.foreground, 0.05)
 
-            Behavior on opacity {
-                NumberAnimation {
-                    duration: 200
-                    easing.type: Easing.OutCubic
+            RowLayout {
+                id: actionRow
+                anchors.centerIn: parent
+                spacing: 0
+
+                FooterButton {
+                    id: primaryButton
+                    visible: Launcher.actionPanel.primaryActionTitle !== ""
+                    label: Launcher.actionPanel.primaryActionTitle
+                    shortcutTokens: Launcher.actionPanel.primaryActionShortcutTokens
+                    highlighted: true
+                    onClicked: Launcher.actionPanel.executePrimaryAction()
+                }
+
+                FooterButton {
+                    id: actionsButton
+                    visible: Launcher.actionPanel.hasMultipleActions
+                    label: qsTr("Actions")
+                    shortcutTokens: Keybinds.toggleActionPanelTokens
+                    highlighted: Launcher.actionPanel.open
+                    backgrounded: Launcher.actionPanel.open
+                    onClicked: Launcher.actionPanel.toggle(true)
                 }
             }
-        }
-
-        FooterButton {
-            id: actionsButton
-            visible: Launcher.actionPanel.hasMultipleActions
-            Layout.alignment: Qt.AlignVCenter
-            label: qsTr("Actions")
-            shortcutTokens: Keybinds.toggleActionPanelTokens
-            highlighted: Launcher.actionPanel.open
-            backgrounded: Launcher.actionPanel.open
-            onClicked: Launcher.actionPanel.toggle(true)
         }
     }
 }
