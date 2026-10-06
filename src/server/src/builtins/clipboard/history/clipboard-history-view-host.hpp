@@ -73,8 +73,6 @@ private:
   void setEntries(const std::vector<ClipboardHistoryEntry> &entries);
   void loadDetail(const ClipboardHistoryEntry &entry);
   void clearDetail();
-  void saveDropdownFilter(const QString &value);
-  std::optional<QString> getSavedDropdownFilter();
 
   SectionListModel m_model{this};
   CompletionModel m_kindFilterModel{this};

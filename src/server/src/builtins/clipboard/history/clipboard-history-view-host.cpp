@@ -47,31 +47,6 @@ static std::optional<ClipboardOfferKind> kindFromFilterIndex(int index) {
   }
 }
 
-static int filterIndexFromKind(std::optional<ClipboardOfferKind> kind) {
-  if (!kind) return 0;
-  switch (*kind) {
-  case ClipboardOfferKind::Text:
-    return 1;
-  case ClipboardOfferKind::Image:
-    return 2;
-  case ClipboardOfferKind::Link:
-    return 3;
-  case ClipboardOfferKind::File:
-    return 4;
-  default:
-    return 0;
-  }
-}
-
-static const std::unordered_map<QString, ClipboardOfferKind> savedFilterToKind{
-    {"text", ClipboardOfferKind::Text},
-    {"image", ClipboardOfferKind::Image},
-    {"link", ClipboardOfferKind::Link},
-    {"file", ClipboardOfferKind::File},
-};
-
-static const char *filterIndexToSavedValue[] = {"all", "text", "image", "link", "file"};
-
 ClipboardHistoryViewHost::ClipboardHistoryViewHost() : ViewHostBase() {
   auto item = [](const QString &id, const QString &label, QStringView icon) {
     return qml::makeDropdownItem(id, label, qml::imageSourceFor(ImageURL::builtinByName(icon)));
@@ -132,12 +107,6 @@ void ClipboardHistoryViewHost::initialize() {
           });
 
   connect(m_controller, &ClipboardHistoryController::dataLoadingChanged, this, &BaseView::setLoading);
-
-  auto savedFilter = getSavedDropdownFilter().value_or("all");
-  if (auto it = savedFilterToKind.find(savedFilter); it != savedFilterToKind.end()) {
-    m_currentKindFilter = filterIndexFromKind(it->second);
-    m_controller->setKindFilter(it->second);
-  }
 }
 
 void ClipboardHistoryViewHost::loadInitialData() {
@@ -180,8 +149,6 @@ void ClipboardHistoryViewHost::setKindFilter(int kind) {
   auto offerKind = kindFromFilterIndex(kind);
   m_model.setSelectFirstOnReset(true);
   m_controller->setKindFilter(offerKind);
-
-  if (kind >= 0 && kind <= 4) { saveDropdownFilter(filterIndexToSavedValue[kind]); }
 }
 
 void ClipboardHistoryViewHost::setEntries(const std::vector<ClipboardHistoryEntry> &entries) {
@@ -340,14 +307,4 @@ void ClipboardHistoryViewHost::clearDetail() {
   m_detailErrorTitle.clear();
   m_detailErrorDescription.clear();
   emit detailChanged();
-}
-
-void ClipboardHistoryViewHost::saveDropdownFilter(const QString &value) {
-  command()->storage().setItem("filter", value);
-}
-
-std::optional<QString> ClipboardHistoryViewHost::getSavedDropdownFilter() {
-  auto value = command()->storage().getItem("filter");
-  if (value.isNull()) return std::nullopt;
-  return value.toString();
 }
