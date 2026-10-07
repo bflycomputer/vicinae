@@ -254,7 +254,18 @@
 	// The exact list of available providers depends on what extensions have been installed.
 	"providers": {
 		"core": {
-			"enabled": false
+			"enabled": true,
+			"entrypoints": {
+				"manage-fallback": { "enabled": false },
+				"search-menu-bar": { "enabled": false },
+				"report-bug": { "enabled": false },
+				"settings": { "enabled": false },
+				"sponsor": { "enabled": false },
+				"open-config-file": { "enabled": false },
+				"open-default-config": { "enabled": false },
+				"reload-scripts": { "enabled": false },
+				"show-logs": { "enabled": false }
+			}
 		}
 	}
 }
