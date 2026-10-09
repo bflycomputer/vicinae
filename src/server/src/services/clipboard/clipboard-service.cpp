@@ -219,17 +219,6 @@ bool ClipboardService::copyText(const QString &text, const Clipboard::CopyOption
   return copyQMimeData(mimeData, options);
 }
 
-void ClipboardService::scheduleClipboardRestore(int delayMs) {
-  if (!m_lastSelection || m_lastSelection->offers.empty()) return;
-
-  m_restoreTimer.stop();
-  m_restoreTimer.setSingleShot(true);
-  m_restoreTimer.setInterval(delayMs);
-  m_restoreTimer.disconnect();
-  connect(&m_restoreTimer, &QTimer::timeout, this, &ClipboardService::restoreClipboard);
-  m_restoreTimer.start();
-}
-
 static void rerankByPreviewMatch(std::vector<ClipboardHistoryEntry> &entries, const QString &queryText) {
   auto const utf8 = queryText.toUtf8();
   fuzzy::Query const query{std::string_view(utf8.constData(), static_cast<size_t>(utf8.size()))};
@@ -478,8 +467,6 @@ ClipboardSelection &ClipboardService::sanitizeSelection(ClipboardSelection &sele
 void ClipboardService::saveSelection(ClipboardSelection selection) {
   if (!m_monitoring) return;
 
-  m_lastSelection = selection;
-
   sanitizeSelection(selection);
 
   qInfo() << "Received new clipboard selection with" << selection.offers.size()
@@ -670,19 +657,6 @@ std::optional<ClipboardSelection> ClipboardService::retrieveSelectionById(const 
 
 bool ClipboardService::copyQMimeData(QMimeData *data, const Clipboard::CopyOptions &options) {
   return m_clipboardServer->setClipboardContent(data, options);
-}
-
-void ClipboardService::restoreClipboard() {
-  if (!m_lastSelection || m_lastSelection->offers.empty()) return;
-
-  auto *data = new QMimeData;
-  for (const auto &offer : m_lastSelection->offers) {
-    data->setData(offer.mimeType, offer.data);
-  }
-
-  // Restore is transient so we don't re-index a selection that was already on the clipboard.
-  m_clipboardServer->setClipboardContent(data, {.transient = true, .sourceApp = m_lastSelection->sourceApp});
-  m_lastSelection.reset();
 }
 
 std::unique_ptr<QMimeData>

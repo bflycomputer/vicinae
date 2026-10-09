@@ -74,5 +74,4 @@ void PasteService::executePaste() {
   }
 
   m_platform->pasteToApp(window.get(), app.get());
-  m_clipboard.scheduleClipboardRestore();
 }

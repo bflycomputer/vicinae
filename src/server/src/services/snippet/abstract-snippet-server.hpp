@@ -26,7 +26,7 @@ public:
   virtual bool supportsKeyInjection() const = 0;
 
   // whether an expansion of the given length is delivered via the clipboard (paste). when false, the
-  // backend types the text directly and the service skips clipboard staging/restore. the same decision is
+  // backend types the text directly and the service skips clipboard staging. the same decision is
   // handed back to the backend through injectExpand's viaClipboard argument. backends with a fixed delivery
   // mode ignore the length; an auto backend uses it to type short expansions and paste long ones.
   virtual bool usesClipboard(std::size_t expandedLength) const = 0;

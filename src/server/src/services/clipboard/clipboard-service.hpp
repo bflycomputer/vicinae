@@ -65,10 +65,7 @@ public:
   bool setPinned(const QString &id, bool pinned);
   QFuture<PaginatedResponse<ClipboardHistoryEntry>> listAll(int limit = 100, int offset = 0,
                                                             const ClipboardListSettings &opts = {}) const;
-  static constexpr int CLIPBOARD_RESTORE_DELAY_MS = 800;
-
   bool copyText(const QString &text, const Clipboard::CopyOptions &options = {.concealed = true});
-  void scheduleClipboardRestore(int delayMs = CLIPBOARD_RESTORE_DELAY_MS);
   bool copyHtml(const Clipboard::Html &data, const Clipboard::CopyOptions &options = {.concealed = false});
   bool copyFile(const std::filesystem::path &path,
                 const Clipboard::CopyOptions &options = {.concealed = false});
@@ -144,13 +141,9 @@ private:
   void runEvictionPass();
   void armEvictionTimer(std::optional<int64_t> oldestTimestamp);
 
-  void restoreClipboard();
-
   bool m_recordAllOffers = true;
   bool m_monitoring = false;
   bool m_ignorePasswords = true;
-  std::optional<ClipboardSelection> m_lastSelection;
-  QTimer m_restoreTimer;
   QFutureWatcher<std::expected<ClipboardHistoryEntry, QString>> m_indexingSelection;
   std::optional<std::chrono::seconds> m_evictionThreshold;
   bool m_preserveTaggedSelections = true;

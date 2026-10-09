@@ -9,7 +9,6 @@
 #include "snippet-db.hpp"
 #include <qguiapplication.h>
 #include <qobject.h>
-#include <QTimer>
 #include <qtmetamacros.h>
 
 class SnippetService : public QObject {
@@ -198,10 +197,6 @@ private:
 
     m_server.injectExpand(expanded.toStdString(), charsToDelete, m_prePasteDelay * 1000, terminal,
                           cursorLeftMoves, usesClipboard);
-
-    if (usesClipboard) {
-      QTimer::singleShot(0, this, [this]() { m_clipboard.scheduleClipboardRestore(); });
-    }
   }
 
   AbstractSnippetServer &m_server;
