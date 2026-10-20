@@ -607,13 +607,6 @@ AppPtr XdgAppDatabase::findByClass(const QString &name) const {
 std::vector<AppPtr> XdgAppDatabase::list() const { return {m_apps.begin(), m_apps.end()}; }
 
 PreferenceList XdgAppDatabase::preferences() const {
-  auto defaultAction = Preference::makeDropdown(
-      "defaultAction", {{tr("Focus window"), "focus"}, {tr("Launch app"), "launch"}});
-  defaultAction.setDefaultValue("focus");
-  defaultAction.setTitle(tr("Default action"));
-  defaultAction.setDescription(tr("Action to perform when the return key is pressed. Always default to "
-                                  "'launch' if the app has no open window."));
-
   auto launchPrefix = Preference::makeText("launchPrefix");
   launchPrefix.setTitle(tr("Launch Prefix"));
   launchPrefix.setDescription(
@@ -634,7 +627,7 @@ PreferenceList XdgAppDatabase::preferences() const {
          "so, you need to append additonal paths to the <b>XDG_DATA_DIRS</b> environment variables."));
   paths.setReadOnly(true);
 
-  return {defaultAction, launchPrefix, paths};
+  return {launchPrefix, paths};
 }
 
 void XdgAppDatabase::applyPreferences(const QJsonObject &preferences) {

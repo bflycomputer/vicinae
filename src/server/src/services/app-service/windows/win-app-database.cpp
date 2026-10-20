@@ -1064,13 +1064,6 @@ WindowsAppDatabase::AppPtr WindowsAppDatabase::findByClass(const QString &name) 
 }
 
 PreferenceList WindowsAppDatabase::preferences() const {
-  auto defaultAction = Preference::makeDropdown(
-      "defaultAction", {{tr("Focus window"), "focus"}, {tr("Launch app"), "launch"}});
-  defaultAction.setDefaultValue("focus");
-  defaultAction.setTitle(tr("Default action"));
-  defaultAction.setDescription(tr("Action to perform when the return key is pressed. Always default to "
-                                  "'launch' if the app has no open window."));
-
   std::vector<QString> lockedPaths;
   for (const auto &path : defaultSearchPaths())
     lockedPaths.emplace_back(toQString(path));
@@ -1079,7 +1072,7 @@ PreferenceList WindowsAppDatabase::preferences() const {
   paths.setTitle(tr("Application directories"));
   paths.setDescription(tr("Directories applications are sourced from."));
 
-  return {defaultAction, paths};
+  return {paths};
 }
 
 void WindowsAppDatabase::applyPreferences(const QJsonObject &preferences) {

@@ -29,12 +29,12 @@ std::unique_ptr<ActionPanelState> BrowseAppsSection::buildActionPanel(const AppP
   auto *mainSection = panel->createSection();
   auto *utils = panel->createSection();
 
-  auto activeWindows = scope().services()->windowManager()->findAppWindows(*app);
-  if (!activeWindows.empty()) { mainSection->addAction(new FocusWindowAction(activeWindows.front())); }
-
   auto *open = new OpenAppAction(app, tr("Open Application"), {});
   open->setClearSearch(true);
   mainSection->addAction(open);
+
+  auto activeWindows = scope().services()->windowManager()->findAppWindows(*app);
+  if (!activeWindows.empty()) { mainSection->addAction(new FocusWindowAction(activeWindows.front())); }
 
   auto actions = app->actions();
   for (int i = 0; std::cmp_less(i, actions.size()); ++i) {

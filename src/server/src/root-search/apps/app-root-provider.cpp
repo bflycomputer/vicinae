@@ -56,8 +56,6 @@ std::unique_ptr<ActionPanelState> AppRootItem::newActionPanel(ApplicationContext
   auto copyId = new CopyToClipboardAction(Clipboard::Text(m_app->id()), tr("Copy App ID"));
   auto copyLocation = new CopyToClipboardAction(
       Clipboard::Text(QString::fromStdString(m_app->path().string())), tr("Copy App Location"));
-  auto preferences = ctx->services->rootItemManager()->getPreferenceValues(uniqueId());
-  QString const defaultAction = preferences.value("defaultAction").toString();
 
   auto mainSection = panel->createSection();
   auto utils = panel->createSection();
@@ -70,15 +68,10 @@ std::unique_ptr<ActionPanelState> AppRootItem::newActionPanel(ApplicationContext
 
   auto activeWindows = ctx->services->windowManager()->findAppWindows(*m_app);
 
+  mainSection->addAction(open);
+
   if (!activeWindows.empty()) {
-    auto focus = new FocusWindowAction(activeWindows.front());
-    if (defaultAction == "focus") {
-      mainSection->addAction(focus);
-      mainSection->addAction(open);
-    } else {
-      mainSection->addAction(open);
-      mainSection->addAction(focus);
-    }
+    mainSection->addAction(new FocusWindowAction(activeWindows.front()));
 
     auto provider = ctx->services->windowManager()->provider();
     if (provider->supports(AbstractWindowManager::Capability::SetSticky)) {
@@ -88,8 +81,6 @@ std::unique_ptr<ActionPanelState> AppRootItem::newActionPanel(ApplicationContext
       mainSection->addAction(new BringToWorkspaceAction(activeWindows.front()));
     }
     mainSection->addAction(new CloseWindowAction(activeWindows.front()));
-  } else {
-    mainSection->addAction(open);
   }
 
   auto actions = m_app->actions();
