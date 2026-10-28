@@ -11,7 +11,9 @@ Item {
     property bool flatAccessories: false
     readonly property bool isRootScreen: Launcher.atRoot
     readonly property bool isClipboardScreen: Launcher.commandViewHost instanceof ClipboardHistoryViewHost
-    readonly property bool hasCompactChrome: isRootScreen || isClipboardScreen
+    readonly property bool isInstallScreen: (Launcher.commandViewHost as ExtensionViewHost)?.pondInstall ?? false
+    readonly property bool usesRootLayout: isRootScreen || isInstallScreen
+    readonly property bool hasCompactChrome: usesRootLayout || isClipboardScreen
     readonly property var clipboardFilter: isClipboardScreen ? accessoryLoader.item : null
     readonly property bool queryEmpty: searchInput.text.length === 0
 
@@ -26,14 +28,14 @@ Item {
         anchors.top: parent.top
         anchors.left: parent.left
         anchors.right: parent.right
-        height: root.isRootScreen ? 72 : (root.isClipboardScreen ? 68 : parent.height)
+        height: root.usesRootLayout ? 72 : (root.isClipboardScreen ? 68 : parent.height)
         anchors.leftMargin: root.hasCompactChrome ? 0 : root.horizontalPadding
-        anchors.rightMargin: root.isRootScreen ? 40 : (root.isClipboardScreen ? (root.clipboardFilter?.filtered ? 0 : -8) : root.horizontalPadding)
-        spacing: Launcher.hasCompleter ? 4 : 12
+        anchors.rightMargin: root.usesRootLayout ? 40 : (root.isClipboardScreen ? (root.clipboardFilter?.filtered ? 0 : -8) : root.horizontalPadding)
+        spacing: Launcher.hasCompleter ? 4 : (root.isInstallScreen ? 2 : 12)
 
         ViciImage {
             id: backButton
-            visible: Launcher.showBackButton
+            visible: Launcher.showBackButton && !root.isInstallScreen
             Layout.preferredWidth: 22
             Layout.preferredHeight: 22
             Layout.alignment: Qt.AlignVCenter
@@ -47,6 +49,17 @@ Item {
             TapHandler {
                 onTapped: Launcher.goBack()
             }
+        }
+
+        Text {
+            visible: root.isInstallScreen
+            text: Launcher.searchPlaceholder
+            font: searchInput.font
+            color: Qt.rgba(1, 1, 1, 0.3)
+            verticalAlignment: Text.AlignVCenter
+            Layout.fillHeight: true
+            Layout.topMargin: -2
+            Layout.bottomMargin: 2
         }
 
         Item {
@@ -67,8 +80,8 @@ Item {
                 Accessible.description: Launcher.searchPlaceholder
                 anchors.fill: parent
                 verticalAlignment: TextInput.AlignVCenter
-                anchors.topMargin: root.isRootScreen && !root.queryEmpty ? -2 : 0
-                anchors.bottomMargin: root.isRootScreen && !root.queryEmpty ? 2 : 0
+                anchors.topMargin: root.isInstallScreen || (root.isRootScreen && !root.queryEmpty) ? -2 : 0
+                anchors.bottomMargin: root.isInstallScreen || (root.isRootScreen && !root.queryEmpty) ? 2 : 0
                 font.family: root.hasCompactChrome ? "Pond Gramercy" : Theme.fontFamily
                 font.pointSize: root.hasCompactChrome ? 19.5 : root.textSize
                 font.styleName: root.hasCompactChrome ? "Book" : ""
@@ -102,7 +115,7 @@ Item {
                     text: Launcher.hasCompleter ? "..." : Launcher.searchPlaceholder
                     color: Theme.textPlaceholder
                     font: searchInput.font
-                    visible: !searchInput.displayText && Launcher.searchInteractive
+                    visible: !searchInput.displayText && Launcher.searchInteractive && !root.isInstallScreen
                 }
 
                 Timer {
@@ -416,7 +429,7 @@ Item {
     }
 
     Image {
-        visible: root.isRootScreen
+        visible: root.usesRootLayout
         anchors.right: parent.right
         y: 24
         width: 24

@@ -5,6 +5,7 @@ import Vicinae
 Item {
     id: root
     required property ExtensionViewHost host
+    implicitHeight: root.host.pondInstall ? (contentLoader.item as Item)?.implicitHeight ?? 0 : 0
 
     function restoreFocus() {
         // qmllint disable missing-property
@@ -85,6 +86,7 @@ Item {
     Component {
         id: listComponent
         Item {
+            implicitHeight: root.host.pondInstall ? listView.count * 48 + listView.topMargin : 0
             function moveUp() {
                 return listView.moveUp();
             }
@@ -108,6 +110,10 @@ Item {
                 onEndReached: root.host.onLoadMore()
 
                 autoWireModel: true
+                Binding on topMargin {
+                    when: root.host.pondInstall
+                    value: 16
+                }
                 selectFirstOnReset: root.host.selectFirstOnReset
                 suppressEmpty: root.host.suppressEmptyView
 
@@ -146,12 +152,13 @@ Item {
                         id: itemComponent
                         ListItemDelegate {
                             width: delegateLoader.width
+                            height: root.host.pondInstall ? 48 : 38
                             itemTitle: delegateLoader.title
                             itemSubtitle: delegateLoader.subtitle
                             itemIconSource: delegateLoader.iconSource
                             itemAlias: ""
                             itemIsActive: false
-                            itemAccessory: delegateLoader.itemAccessory
+                            itemAccessory: root.host.pondInstall && listView.currentIndex !== delegateLoader.index ? [] : delegateLoader.itemAccessory
                             selected: listView.currentIndex === delegateLoader.index
                             draggable: delegateLoader.isDraggable
                             onClicked: listView.currentIndex = delegateLoader.index

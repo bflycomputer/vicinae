@@ -12,11 +12,13 @@ LauncherWindowBase {
 
     readonly property bool isRootScreen: Launcher.atRoot
     readonly property bool isClipboardScreen: Launcher.commandViewHost instanceof ClipboardHistoryViewHost
-    readonly property bool hasCompactChrome: isRootScreen || isClipboardScreen
+    readonly property bool isInstallScreen: (Launcher.commandViewHost as ExtensionViewHost)?.pondInstall ?? false
+    readonly property bool usesRootLayout: isRootScreen || isInstallScreen
+    readonly property bool hasCompactChrome: usesRootLayout || isClipboardScreen
     readonly property bool queryEmpty: (searchBar.item as SearchBar)?.queryEmpty ?? true
     readonly property int panelTop: Math.round(Screen.height * 290 / 1117)
     readonly property real resultHeight: commandView?.implicitHeight ?? 170
-    appearance.contentInset: isRootScreen ? 24 : (isClipboardScreen ? 0 : Config.borderWidth)
+    appearance.contentInset: usesRootLayout ? 24 : (isClipboardScreen ? 0 : Config.borderWidth)
     appearance.searchBarHeight: hasCompactChrome ? 64 : 60
     appearance.searchDividerVisible: !hasCompactChrome
 
@@ -40,7 +42,7 @@ LauncherWindowBase {
     signal shown
 
     readonly property int _w: Launcher.overrideWidth || Config.windowWidth
-    readonly property int _h: isRootScreen ? Math.min(queryEmpty ? 254 : Math.max(258, appearance.searchBarHeight + 12 + resultHeight), Config.windowHeight, Screen.height - panelTop - 24) : (Launcher.overrideHeight || (isClipboardScreen ? Math.min(464, Config.windowHeight) : Config.windowHeight))
+    readonly property int _h: isInstallScreen ? (resultHeight > 16 ? appearance.searchBarHeight + 12 + Math.min(resultHeight, 16 + 5 * 48) : 258) : isRootScreen ? Math.min(queryEmpty ? 254 : Math.max(258, appearance.searchBarHeight + 12 + resultHeight), Config.windowHeight, Screen.height - panelTop - 24) : (Launcher.overrideHeight || (isClipboardScreen ? Math.min(464, Config.windowHeight) : Config.windowHeight))
     readonly property int _contentH: Launcher.compacted ? root.appearance.searchBarHeight + 2 * root.appearance.contentInset : root._h
     readonly property int expandedHeight: root._h + 2 * shadowPadding
 
@@ -149,8 +151,8 @@ LauncherWindowBase {
         ColumnLayout {
             anchors.fill: parent
             anchors.margins: root.appearance.contentInset
-            anchors.topMargin: root.isRootScreen ? 0 : root.appearance.contentInset
-            anchors.bottomMargin: root.isRootScreen && !root.queryEmpty ? 12 : root.appearance.contentInset
+            anchors.topMargin: root.usesRootLayout ? 0 : root.appearance.contentInset
+            anchors.bottomMargin: root.isInstallScreen || (root.isRootScreen && !root.queryEmpty) ? 12 : root.appearance.contentInset
             spacing: 0
             visible: !Launcher.hasOverlay
 
@@ -170,8 +172,8 @@ LauncherWindowBase {
 
             Item {
                 id: contentViewport
-                Layout.leftMargin: root.isRootScreen ? -12 : 0
-                Layout.rightMargin: root.isRootScreen ? -12 : 0
+                Layout.leftMargin: root.usesRootLayout ? -12 : 0
+                Layout.rightMargin: root.usesRootLayout ? -12 : 0
                 Layout.fillWidth: true
                 Layout.fillHeight: true
 
@@ -201,7 +203,7 @@ LauncherWindowBase {
         Loader {
             id: searchBar
             x: root.isClipboardScreen ? 24 : root.appearance.contentInset
-            y: root.isRootScreen ? 0 : root.appearance.contentInset
+            y: root.usesRootLayout ? 0 : root.appearance.contentInset
             width: parent.width - 2 * x
             height: root.appearance.searchBarHeight
             visible: Launcher.searchVisible && !Launcher.hasOverlay
@@ -215,7 +217,7 @@ LauncherWindowBase {
 
         Loader {
             id: floatingStatusBar
-            visible: !root.isRootScreen && !Launcher.compacted && !Launcher.hasOverlay && Launcher.statusBarVisible
+            visible: !root.usesRootLayout && !Launcher.compacted && !Launcher.hasOverlay && Launcher.statusBarVisible
             anchors.left: parent.left
             anchors.right: parent.right
             anchors.bottom: parent.bottom
@@ -228,8 +230,8 @@ LauncherWindowBase {
             anchors.fill: parent
             radius: root.cornerRadius
             overlay: true
-            borderColor: root.isRootScreen ? Qt.rgba(242 / 255, 242 / 255, 242 / 255, 0.1) : Config.withAlpha(Theme.mainWindowBorder, Config.windowOpacity)
-            borderWidth: root.isRootScreen ? 1 : Config.borderWidth
+            borderColor: root.usesRootLayout ? Qt.rgba(242 / 255, 242 / 255, 242 / 255, 0.1) : Config.withAlpha(Theme.mainWindowBorder, Config.windowOpacity)
+            borderWidth: root.usesRootLayout ? 1 : Config.borderWidth
         }
 
         Loader {
@@ -243,16 +245,16 @@ LauncherWindowBase {
 
         ActionPanelPopover {
             id: actionPanelPopover
-            parent: root.isRootScreen ? content : ((floatingStatusBar.item as LauncherStatusBar)?.popupAnchor ?? floatingStatusBar)
-            y: root.isRootScreen ? content.height - height - 6 : -height - 6
+            parent: root.usesRootLayout ? content : ((floatingStatusBar.item as LauncherStatusBar)?.popupAnchor ?? floatingStatusBar)
+            y: root.usesRootLayout ? content.height - height - 6 : -height - 6
             controller: Launcher.actionPanel
             maxHeight: Math.round(root.expandedHeight * 0.55)
         }
 
         ActionPanelPopover {
             id: footerMenuPopover
-            parent: root.isRootScreen ? content : ((floatingStatusBar.item as LauncherStatusBar)?.popupAnchor ?? floatingStatusBar)
-            y: root.isRootScreen ? content.height - height - 6 : -height - 6
+            parent: root.usesRootLayout ? content : ((floatingStatusBar.item as LauncherStatusBar)?.popupAnchor ?? floatingStatusBar)
+            y: root.usesRootLayout ? content.height - height - 6 : -height - 6
             controller: Launcher.footerPanel
             alignLeft: true
             maxHeight: Math.round(root.expandedHeight * 0.55)

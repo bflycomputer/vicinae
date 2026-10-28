@@ -9,7 +9,7 @@ LauncherWindow {
     width: Screen.width
     height: Screen.height
     panelX: Math.round((width - root._w) / 2)
-    panelY: root.isRootScreen ? Math.max(shadowPadding, panelTop) : Math.round((height - expandedHeight) / 2) + shadowPadding
+    panelY: root.usesRootLayout ? Math.max(shadowPadding, panelTop) : Math.round((height - expandedHeight) / 2) + shadowPadding
     LayerShell.Window.exclusionZone: -1
 
     LayerShell.Window.anchors: LayerShell.Window.AnchorTop | LayerShell.Window.AnchorBottom | LayerShell.Window.AnchorLeft | LayerShell.Window.AnchorRight

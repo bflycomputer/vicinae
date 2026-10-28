@@ -31,9 +31,11 @@ class ExtensionViewHost : public ViewHostBase {
   Q_PROPERTY(QVariant dropdownCurrentItem READ dropdownCurrentItem NOTIFY dropdownChanged)
   Q_PROPERTY(QString dropdownPlaceholder READ dropdownPlaceholder NOTIFY dropdownChanged)
   Q_PROPERTY(bool hasMorePages READ hasMorePages NOTIFY paginationChanged)
+  Q_PROPERTY(bool pondInstall READ pondInstall CONSTANT)
 
 public:
-  explicit ExtensionViewHost(ExtensionActionPanelBuilder::NotifyFn notify, QObject *parent = nullptr);
+  explicit ExtensionViewHost(ExtensionActionPanelBuilder::NotifyFn notify, bool pondInstall = false,
+                             QObject *parent = nullptr);
 
   QUrl qmlComponentUrl() const override;
   QUrl qmlSearchAccessoryUrl() const override;
@@ -62,6 +64,7 @@ public:
   CompletionModel *dropdownModel() { return &m_dropdownModel; }
   QVariant dropdownCurrentItem() const { return m_dropdownCurrentItem; }
   QString dropdownPlaceholder() const { return m_dropdownPlaceholder; }
+  bool pondInstall() const { return m_pondInstall; }
 
   bool hasMorePages() const {
     return m_pagination.transform([](auto &&p) { return p.hasMore; }).value_or(false);
@@ -106,6 +109,7 @@ private:
   }
 
   ExtensionActionPanelBuilder::NotifyFn m_notify;
+  bool m_pondInstall;
   ViewModel m_model;
   int m_renderIndex = -1;
   QTimer *m_searchDebounce;

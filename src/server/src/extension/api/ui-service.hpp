@@ -111,7 +111,8 @@ public:
 
   Void::Future pushView() override {
     auto notifyFn = makeNotifyFn();
-    auto *host = new ExtensionViewHost(notifyFn);
+    auto *host = new ExtensionViewHost(
+        notifyFn, m_command->uniqueId() == EntrypointId{"@bflycomputer/pond-pm-extension", "install"});
 
     m_navigation->pushView(host);
     m_navigation->setNavigationTitle(m_command->name());

@@ -6,8 +6,10 @@
 
 static const std::chrono::milliseconds THROTTLE_DEBOUNCE_DURATION(300);
 
-ExtensionViewHost::ExtensionViewHost(ExtensionActionPanelBuilder::NotifyFn notify, QObject *parent)
-    : ViewHostBase(), m_notify(std::move(notify)), m_searchDebounce(new QTimer(this)) {
+ExtensionViewHost::ExtensionViewHost(ExtensionActionPanelBuilder::NotifyFn notify, bool pondInstall,
+                                     QObject *parent)
+    : ViewHostBase(), m_notify(std::move(notify)), m_pondInstall(pondInstall),
+      m_searchDebounce(new QTimer(this)) {
   m_searchDebounce->setSingleShot(true);
   connect(m_searchDebounce, &QTimer::timeout, this, &ExtensionViewHost::handleDebouncedSearch);
 }
