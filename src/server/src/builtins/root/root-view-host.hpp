@@ -4,6 +4,7 @@
 #include <qtimer.h>
 
 class RootSearchModel;
+class RootTiles;
 class SectionListModel;
 
 class RootViewHost : public ViewHostBase {
@@ -26,6 +27,7 @@ public:
   SectionListModel *listModel() const override;
   QVariantList recentApps() const;
   Q_INVOKABLE void launchRecent(int index);
+  Q_INVOKABLE void dismissRecent(int index);
 
 signals:
   void recentsChanged();
@@ -47,4 +49,5 @@ private:
   std::optional<int> m_historyOffset;
   QTimer *m_clockTimer = new QTimer(this);
   RootSearchModel *m_model = nullptr;
+  RootTiles *m_tiles = nullptr;
 };

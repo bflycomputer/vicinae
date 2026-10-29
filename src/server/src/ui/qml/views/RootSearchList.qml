@@ -22,7 +22,7 @@ GenericListView {
                 id: recentCard
                 required property var modelData
                 required property int index
-                readonly property bool highlighted: pointer.containsMouse || searchListView.host.recentIndex === index
+                readonly property bool highlighted: pointer.containsMouse || dismiss.containsMouse || searchListView.host.recentIndex === index
                 width: (parent.width - 32) / 3
                 height: 144
                 radius: 10
@@ -33,6 +33,21 @@ GenericListView {
                     width: 20
                     height: 20
                     source: recentCard.modelData.icon
+                }
+                Text {
+                    x: 20
+                    y: 80
+                    width: parent.width - 40
+                    height: 20
+                    visible: recentCard.modelData.subtitle !== ""
+                    text: recentCard.modelData.subtitle
+                    font.family: "Pond Gramercy"
+                    font.styleName: "Book"
+                    font.pixelSize: 14
+                    verticalAlignment: Text.AlignVCenter
+                    color: Theme.foreground
+                    opacity: recentCard.highlighted ? 0.7 : 0.4
+                    elide: Text.ElideRight
                 }
                 Text {
                     x: 20
@@ -54,6 +69,24 @@ GenericListView {
                     hoverEnabled: true
                     cursorShape: Qt.PointingHandCursor
                     onClicked: searchListView.host.launchRecent(recentCard.index)
+                }
+                MouseArea {
+                    id: dismiss
+                    visible: recentCard.modelData.dismissable === true
+                    anchors.top: parent.top
+                    anchors.right: parent.right
+                    width: 36
+                    height: 36
+                    hoverEnabled: true
+                    cursorShape: Qt.PointingHandCursor
+                    onClicked: searchListView.host.dismissRecent(recentCard.index)
+                    Text {
+                        anchors.centerIn: parent
+                        text: "\u00d7"
+                        font.pixelSize: 22
+                        color: Theme.foreground
+                        opacity: !recentCard.highlighted ? 0 : parent.containsMouse ? 1 : 0.5
+                    }
                 }
             }
         }
