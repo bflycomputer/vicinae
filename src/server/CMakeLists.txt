@@ -529,6 +529,8 @@ set(SRCS
 	src/services/permissions/macos-permission-service.hpp
 	src/ui/qml-dev-loader.hpp
 	src/ui/qml-dev-loader.cpp
+	src/builtins/root/root-tiles.hpp
+	src/builtins/root/root-tiles.cpp
 	src/builtins/root/root-view-host.hpp
 	src/builtins/root/root-view-host.cpp
 	src/builtins/root/root-search-model.hpp

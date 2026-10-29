@@ -2,6 +2,7 @@
 #include <qevent.h>
 #include <ranges>
 #include "builtins/root/root-view-host.hpp"
+#include "builtins/root/root-tiles.hpp"
 #include "ui/views/view-utils.hpp"
 #include "lib/figura/src/utils.hpp"
 #include "builtins/root/root-search-model.hpp"
@@ -10,12 +11,16 @@
 #include "services/keybinding/keybinding-service.hpp"
 #include "ui/views/view-scope.hpp"
 
+static constexpr int RECENT_SLOTS = 3;
+
 void RootViewHost::initialize() {
   using namespace std::chrono_literals;
   auto cfgService = context()->services->config();
 
   BaseView::initialize();
   m_model = new RootSearchModel(ViewScope(context(), this), this);
+  m_tiles = new RootTiles(this);
+  connect(m_tiles, &RootTiles::changed, this, &RootViewHost::recentsChanged);
   scheduleNextClockTick();
   connect(context()->services->rootItemManager(), &RootItemManager::itemsChanged, this,
           &RootViewHost::recentsChanged);
@@ -132,6 +137,9 @@ bool RootViewHost::inputFilter(QKeyEvent *event) {
     case Qt::Key_Enter:
       launchRecent(std::max(0, m_recentIndex));
       return true;
+    case Qt::Key_Delete:
+      dismissRecent(m_recentIndex);
+      return true;
     case Qt::Key_Right:
     case Qt::Key_Down:
     case Qt::Key_Tab:
@@ -221,11 +229,23 @@ QVariantList RootViewHost::recentApps() const {
                               id == EntrypointId{"@bflycomputer/pond-pm-extension", "install"};
                      });
   QVariantList result;
-  for (const auto &match : suggestions | std::views::take(3)) {
+  for (const auto &match : suggestions | std::views::take(RECENT_SLOTS)) {
     const auto &app = match.item.get();
     result.append(QVariantMap{{"id", QString::fromStdString(std::string{app->uniqueId()})},
                               {"title", app->title()},
+                              {"subtitle", QString{}},
                               {"icon", app->iconUrl().toString()}});
+  }
+
+  // last slot, so that Enter on a freshly opened launcher still activates the first app
+  if (const auto tile = m_tiles->first()) {
+    if (result.size() >= RECENT_SLOTS) result.removeLast();
+    result.append(QVariantMap{{"id", tile->id},
+                              {"tile", true},
+                              {"dismissable", tile->dismiss.has_value()},
+                              {"title", tile->title},
+                              {"subtitle", tile->subtitle},
+                              {"icon", tile->icon}});
   }
   return result;
 }
@@ -237,6 +257,19 @@ void RootViewHost::selectRecent(int index) {
 }
 
 void RootViewHost::launchRecent(int index) {
+  const auto apps = recentApps();
+  if (index >= 0 && index < apps.size() && apps[index].toMap().value("tile").toBool()) {
+    m_tiles->activate(apps[index].toMap().value("id").toString());
+    context()->navigation->closeWindow();
+    return;
+  }
   selectRecent(index);
   m_model->activateSelected();
+}
+
+void RootViewHost::dismissRecent(int index) {
+  const auto apps = recentApps();
+  if (index < 0 || index >= apps.size()) return;
+  const auto tile = apps[index].toMap();
+  if (tile.value("tile").toBool()) m_tiles->dismiss(tile.value("id").toString());
 }
