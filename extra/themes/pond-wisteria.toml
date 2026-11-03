@@ -1,0 +1,16 @@
+[meta]
+name = "Wisteria"
+description = "Violet Pond theme"
+variant = "dark"
+inherits = "default"
+
+[colors.core]
+background = "#1b1b33"
+foreground = "#f6e8ff"
+accent = "#d1c9ff"
+
+[colors.text]
+placeholder = { name = "#f6e8ff", opacity = 0.2 }
+
+[colors.input]
+border = { name = "#f6e8ff", opacity = 0.13 }

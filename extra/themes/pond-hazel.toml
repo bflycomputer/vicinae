@@ -1,0 +1,16 @@
+[meta]
+name = "Hazel"
+description = "Warm Pond theme"
+variant = "dark"
+inherits = "default"
+
+[colors.core]
+background = "#121108"
+foreground = "#fff5f5"
+accent = "#ebc98b"
+
+[colors.text]
+placeholder = { name = "#faf5ff", opacity = 0.2 }
+
+[colors.input]
+border = { name = "#dccdee", opacity = 0.13 }

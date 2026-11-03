@@ -1,0 +1,16 @@
+[meta]
+name = "North"
+description = "Cold Pond theme"
+variant = "dark"
+inherits = "default"
+
+[colors.core]
+background = "#102025"
+foreground = "#e0f1fb"
+accent = "#b4c7e8"
+
+[colors.text]
+placeholder = { name = "#fffae1", opacity = 0.2 }
+
+[colors.input]
+border = { name = "#fffae1", opacity = 0.13 }

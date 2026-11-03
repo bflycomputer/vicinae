@@ -18,6 +18,7 @@ public:
   static ThemeBridge *create(QQmlEngine *, QJSEngine *) { return QmlEngineScope::global<ThemeBridge>(); }
 
 private:
+  Q_PROPERTY(QString id READ id NOTIFY changed)
   Q_PROPERTY(bool isDark READ isDark NOTIFY changed)
   Q_PROPERTY(QColor background READ background NOTIFY changed)
   Q_PROPERTY(QColor foreground READ foreground NOTIFY changed)
@@ -72,6 +73,7 @@ public:
     qApp->installEventFilter(this);
   }
 
+  QString id() const { return ThemeService::instance().theme().id(); }
   bool isDark() const { return ThemeService::instance().theme().isDark(); }
   QColor background() const { return resolve(SemanticColor::Background); }
   QColor foreground() const { return resolve(SemanticColor::Foreground); }

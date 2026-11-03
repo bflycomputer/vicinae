@@ -6,6 +6,15 @@ GenericListView {
     id: searchListView
     required property var cmdModel
     required property var host
+    // Rest and selected tile fills. Flat tints, the card gradient shows through them.
+    readonly property var tileFills: ({
+            "pond-hazel": [Qt.alpha("#FFF0C5", 0.08), Qt.alpha("#F7E3AA", 0.2)],
+            "pond-wisteria": [Qt.alpha("#F0D7FF", 0.1), Qt.alpha("#F0D7FF", 0.2)],
+            "pond-north": [Qt.alpha("#E0F1FB", 0.08), Qt.alpha("#E0F1FB", 0.14)]
+        })[Theme.id] ?? [Qt.rgba(1, 1, 1, 0.06), Qt.rgba(1, 1, 1, 0.10)]
+    readonly property bool pondTheme: Theme.id.startsWith("pond-")
+    // Enter launches the first tile before any arrow key, so Pond lights it until the pointer is on the tiles.
+    readonly property int litTile: pondTheme && host.recentIndex < 0 && !tileHover.hovered ? 0 : host.recentIndex
     showResults: !host.queryEmpty
     suppressEmpty: host.queryEmpty || Launcher.isLoading
 
@@ -16,17 +25,20 @@ GenericListView {
         y: 16
         spacing: 16
         visible: searchListView.host.queryEmpty
+        HoverHandler {
+            id: tileHover
+        }
         Repeater {
             model: searchListView.host.recentApps
             delegate: Rectangle {
                 id: recentCard
                 required property var modelData
                 required property int index
-                readonly property bool highlighted: pointer.containsMouse || searchListView.host.recentIndex === index
+                readonly property bool highlighted: pointer.containsMouse || searchListView.litTile === index
                 width: (parent.width - 32) / 3
                 height: 144
                 radius: 10
-                color: Qt.rgba(1, 1, 1, highlighted ? 0.10 : 0.06)
+                color: searchListView.tileFills[highlighted ? 1 : 0]
                 ViciImage {
                     x: 20
                     y: 20
@@ -45,7 +57,7 @@ GenericListView {
                     font.pixelSize: 20
                     verticalAlignment: Text.AlignVCenter
                     color: Theme.foreground
-                    opacity: recentCard.highlighted ? 1 : 0.6
+                    opacity: searchListView.pondTheme ? 0.8 : recentCard.highlighted ? 1 : 0.6
                     elide: Text.ElideRight
                 }
                 MouseArea {

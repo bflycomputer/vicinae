@@ -19,7 +19,7 @@ LauncherWindowBase {
     readonly property int panelTop: Math.round(Screen.height * 290 / 1117)
     readonly property real resultHeight: commandView?.implicitHeight ?? 170
     appearance.contentInset: usesRootLayout ? 24 : (isClipboardScreen ? 0 : Config.borderWidth)
-    appearance.searchBarHeight: hasCompactChrome ? 64 : 60
+    appearance.searchBarHeight: isRootScreen && cardGradient ? 70 : hasCompactChrome ? 64 : 60
     appearance.searchDividerVisible: !hasCompactChrome
 
     property int cornerRadius: Config.borderRounding
@@ -43,6 +43,12 @@ LauncherWindowBase {
 
     readonly property int _w: Launcher.overrideWidth || Config.windowWidth
     readonly property int _h: isInstallScreen ? (resultHeight > 16 ? appearance.searchBarHeight + 12 + Math.min(resultHeight, 16 + 5 * 48) : 258) : isRootScreen ? Math.min(queryEmpty ? 254 : Math.max(258, appearance.searchBarHeight + 12 + resultHeight), Config.windowHeight, Screen.height - panelTop - 24) : (Launcher.overrideHeight || (isClipboardScreen ? Math.min(464, Config.windowHeight) : Config.windowHeight))
+    // A theme file holds one colour per key, so the Pond card gradients live here. Their stops carry the design's own alpha.
+    readonly property Gradient cardGradient: ({
+            "pond-hazel": hazelCard,
+            "pond-wisteria": wisteriaCard,
+            "pond-north": northCard
+        })[Theme.id] ?? null
     readonly property int _contentH: Launcher.compacted ? root.appearance.searchBarHeight + 2 * root.appearance.contentInset : root._h
     readonly property int expandedHeight: root._h + 2 * shadowPadding
 
@@ -73,8 +79,61 @@ LauncherWindowBase {
             y: root.shadowPadding
             width: root._w
             height: root._contentH
-            radius: Config.borderRounding
+            // With no border over it, the wallpaper shows in a seam around the corners unless the cut-out curves inside the card.
+            radius: Config.borderRounding + (root.usesRootLayout && root.cardGradient ? 2 : 0)
             color: "white"
+        }
+    }
+
+    Gradient {
+        id: hazelCard
+        GradientStop {
+            position: 0
+            color: Qt.alpha("#121108", 0.9)
+        }
+        GradientStop {
+            position: 0.75
+            color: Qt.alpha("#383325", 0.9)
+        }
+        GradientStop {
+            position: 1
+            color: Qt.alpha("#544833", 0.9)
+        }
+    }
+
+    Gradient {
+        id: wisteriaCard
+        GradientStop {
+            position: 0
+            color: Qt.alpha("#1B1B33", 0.9)
+        }
+        GradientStop {
+            position: 0.77459
+            color: Qt.alpha("#5B5382", 0.9)
+        }
+        GradientStop {
+            position: 0.92522
+            color: Qt.alpha("#846D95", 0.9)
+        }
+        GradientStop {
+            position: 0.97164
+            color: Qt.alpha("#987A9F", 0.9)
+        }
+        GradientStop {
+            position: 1
+            color: Qt.alpha("#AD87A8", 0.9)
+        }
+    }
+
+    Gradient {
+        id: northCard
+        GradientStop {
+            position: 0
+            color: Qt.alpha("#102025", 0.8)
+        }
+        GradientStop {
+            position: 1
+            color: Qt.alpha("#081015", 0.8)
         }
     }
 
@@ -146,6 +205,7 @@ LauncherWindowBase {
             height: root._h
             radius: root.cornerRadius
             color: root.appearance.windowBackground
+            gradient: root.usesRootLayout ? root.cardGradient : null
         }
 
         ColumnLayout {
@@ -231,7 +291,7 @@ LauncherWindowBase {
             radius: root.cornerRadius
             overlay: true
             borderColor: root.usesRootLayout ? Qt.rgba(242 / 255, 242 / 255, 242 / 255, 0.1) : Config.withAlpha(Theme.mainWindowBorder, Config.windowOpacity)
-            borderWidth: root.usesRootLayout ? 1 : Config.borderWidth
+            borderWidth: root.usesRootLayout ? (root.cardGradient ? 0 : 1) : Config.borderWidth
         }
 
         Loader {
