@@ -128,6 +128,7 @@ signals:
   void statusBarVisiblityChanged(bool value);
   void backButtonVisibilityChanged(bool visible);
   void windowActivationChanged(bool value) const;
+  void layerShellLayerOverrideChanged() const;
 
 public:
   Q_INVOKABLE void closeWindow(const CloseWindowOptions &settings = {});
@@ -136,6 +137,14 @@ public:
   Q_INVOKABLE void toggleWindow();
   bool isWindowOpened() const;
   void requestWindowSize(QSize size);
+
+  /**
+   * Temporary layer-shell layer for the next open (e.g. "bottom" so Pond can
+   * reveal the launcher under windows during workspace switches). Cleared on
+   * close and when opening without an override so Mod+Space stays on top.
+   */
+  void setLayerShellLayerOverride(const std::optional<QString> &layer);
+  std::optional<QString> layerShellLayerOverride() const { return m_layerShellLayerOverride; }
 
   bool windowActivated();
   void setWindowActivated(bool value = true);
@@ -289,4 +298,5 @@ private:
   QWindow *m_window = nullptr;
   std::vector<std::unique_ptr<ViewState>> m_views;
   std::optional<PendingPopToRoot> m_pendingPopToRoot;
+  std::optional<QString> m_layerShellLayerOverride;
 };

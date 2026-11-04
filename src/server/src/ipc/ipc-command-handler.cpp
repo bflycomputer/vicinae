@@ -104,7 +104,21 @@ std::expected<void, std::string> IpcCommandHandler::handleUrl(const QUrl &url) {
   }
 
   if (command == "open") {
-    if (m_ctx.navigation->isWindowOpened()) return std::unexpected("Already opened");
+    if (query.hasQueryItem("layer")) {
+      const auto layer = query.queryItemValue("layer", QUrl::FullyDecoded).toLower();
+      if (layer != "top" && layer != "overlay" && layer != "bottom" && layer != "background") {
+        return std::unexpected("Invalid layer; expected top, overlay, bottom, or background");
+      }
+      m_ctx.navigation->setLayerShellLayerOverride(layer);
+    } else {
+      m_ctx.navigation->setLayerShellLayerOverride(std::nullopt);
+    }
+
+    if (m_ctx.navigation->isWindowOpened()) {
+      // Already visible: still apply the layer override (e.g. Pond moving the
+      // launcher under windows for a workspace transition).
+      return {};
+    }
     if (auto text = query.queryItemValue("popToRoot", QUrl::FullyDecoded); text == "true" || text == "1") {
       m_ctx.navigation->popToRoot();
     }

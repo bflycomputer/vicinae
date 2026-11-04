@@ -331,7 +331,14 @@ void NavigationController::closeWindow(const CloseWindowOptions &settings) {
 
   m_pendingPopToRoot = PendingPopToRoot{.type = type, .clearSearch = settings.clearRootSearch};
   m_windowOpened = false;
+  setLayerShellLayerOverride(std::nullopt);
   emit windowVisiblityChanged(false);
+}
+
+void NavigationController::setLayerShellLayerOverride(const std::optional<QString> &layer) {
+  if (m_layerShellLayerOverride == layer) return;
+  m_layerShellLayerOverride = layer;
+  emit layerShellLayerOverrideChanged();
 }
 
 bool NavigationController::windowActivated() { return m_windowActivated; }
@@ -359,6 +366,9 @@ void NavigationController::toggleWindow() {
     closeWindow();
   }
 
+  // Explicit toggles always use the configured (top) layer, never a leftover
+  // under-windows override from a workspace transition.
+  setLayerShellLayerOverride(std::nullopt);
   showWindow();
 }
 

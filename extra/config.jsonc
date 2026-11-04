@@ -180,8 +180,9 @@
 			// WARNING: 'exclusive' is known to break mouse stuff on popups (such as the action panel) on Hyprland
 			"keyboard_interactivity": "exclusive",
 
-			// either 'overlay' or 'top'.
-			// Other layers are not supported as they are unsuitable for a launcher.
+			// 'top' (default), 'overlay', 'bottom', or 'background'.
+			// Pond opens the launcher on the bottom layer during workspace switches so
+			// windows slide over it; Mod+Space / toggle always uses this configured layer.
 			// 'top' is recommended as using 'overlay' will make the vicinae window appear on top of IME popovers in some scenarios.
 			"layer": "top" 
 		}

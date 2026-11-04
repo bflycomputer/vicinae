@@ -97,6 +97,11 @@ LauncherWindow::LauncherWindow(ApplicationContext &ctx, QObject *parent)
   m_closeOnFocusLoss = ctx.services->config()->value().closeOnFocusLoss;
 
   connect(nav, &NavigationController::windowVisiblityChanged, this, &LauncherWindow::handleVisibilityChanged);
+  connect(nav, &NavigationController::layerShellLayerOverrideChanged, this, [this]() {
+    // Skip while closing so clearing the override doesn't flash top over windows.
+    if (m_ctx.navigation->isWindowOpened())
+      updateLayerShellProps();
+  });
 
   // View lifecycle - viewPoped fires BEFORE ViewState is destroyed
   connect(nav, &NavigationController::viewPoped, this, &LauncherWindow::handleViewPoped);
@@ -906,8 +911,17 @@ void LauncherWindow::updateLayerShellProps() {
 
   auto &cfg = m_ctx.services->config()->value();
   const auto &lc = cfg.launcherWindow.layerShell;
+  const auto layerName = m_ctx.navigation->layerShellLayerOverride().value_or(QString::fromStdString(lc.layer));
 
-  int layer = (lc.layer == "overlay") ? 3 : 2;                                  // LayerOverlay : LayerTop
+  // LayerShellQt::Window::Layer{Background,Bottom,Top,Overlay} == 0..3
+  int layer = 2; // Top
+  if (layerName == "overlay")
+    layer = 3;
+  else if (layerName == "bottom")
+    layer = 1;
+  else if (layerName == "background")
+    layer = 0;
+
   int ki = 2;                                                                   // OnDemand
   if (lc.keyboardInteractivity == "exclusive" && !cfg.closeOnFocusLoss) ki = 1; // Exclusive
 
